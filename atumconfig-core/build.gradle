@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+group = project_group
+version = project_version
+
+dependencies {
+    implementation(project(':atumconfig-api'))
+
+
+    implementation 'org.yaml:snakeyaml:2.2'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'org.tomlj:tomlj:1.1.1'
+
+    implementation 'com.github.Redempt:Crunch:2.0.3'
+
+}

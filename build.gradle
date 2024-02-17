@@ -1,0 +1,61 @@
+
+plugins{
+    id 'java'
+    id 'java-library'
+    id "com.github.johnrengelman.shadow" version "7.1.0"
+    id 'maven-publish'
+}
+archivesBaseName = project_name
+
+group = project_group
+version = project_version
+
+compileJava {
+
+    sourceCompatibility = targetCompatibility = '1.8'
+    [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+}
+
+
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.github.johnrengelman.shadow'
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        maven { url 'https://redempt.dev' }
+        maven { url = 'https://jitpack.io' }
+    }
+    dependencies {
+        //annotations
+        compileOnly("org.projectlombok:lombok:1.18.24")
+        compileOnly("org.jetbrains:annotations:23.0.0")
+        annotationProcessor("org.projectlombok:lombok:1.18.24")
+        annotationProcessor("org.jetbrains:annotations:23.0.0")
+
+        compileOnly fileTree(dir: 'libs', include: ['*.jar'])
+    }
+
+    compileJava {
+        dependsOn(clean)
+    }
+    //replace placeholders from gradle.properties
+    java{
+        withSourcesJar()
+    }
+    build{
+        dependsOn(shadowJar)
+    }
+}
+
+dependencies {
+    implementation(project('atumconfig-api'))
+    implementation(project('atumconfig-core'))
+
+}
+
+

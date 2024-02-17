@@ -1,0 +1,4 @@
+rootProject.name = 'AtumConfiguration'
+include 'atumconfig-api'
+include 'atumconfig-core'
+

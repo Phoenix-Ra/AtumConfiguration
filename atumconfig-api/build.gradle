@@ -11,10 +11,9 @@ dependencies {
 
 publishing {
     publications {
-        shadow(MavenPublication) {
+        jar(MavenPublication) {
             from components.java
             artifactId 'api'
-            artifact javadocJar
         }
     }
 }

@@ -47,17 +47,10 @@ allprojects {
     //replace placeholders from gradle.properties
     java{
         withSourcesJar()
+        withJavadocJar()
     }
     build{
         dependsOn(shadowJar)
-    }
-
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        archiveClassifier.set('javadoc')
-        from javadoc.destinationDir
-    }
-    artifacts {
-        archives javadocJar
     }
 }
 

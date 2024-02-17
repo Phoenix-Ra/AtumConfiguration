@@ -13,7 +13,7 @@ publishing {
     publications {
         shadow(MavenPublication) {
             from components.java
-            artifactId 'atumconfig-api'
+            artifactId 'api'
         }
     }
 }

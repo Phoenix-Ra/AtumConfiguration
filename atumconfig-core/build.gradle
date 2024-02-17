@@ -21,6 +21,7 @@ publishing {
         shadow(MavenPublication) {
             from components.java
             artifactId 'core'
+            artifact javadocJar
         }
     }
 }

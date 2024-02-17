@@ -7,19 +7,35 @@ import java.io.File;
 
 public interface ConfigOwner {
 
+    /**
+     * Get Configuration Manager
+     *
+     * @return the config manager
+     */
     @NotNull
     ConfigManager getConfigManager();
 
-
-    @NotNull
-    Logger getLogger();
-
+    /**
+     * Get Data Folder
+     *
+     * @return the data folder
+     */
     @NotNull
     File getDataFolder();
 
+    /**
+     * Get config owner name
+     *
+     * @return the name
+     */
     @NotNull
     String getName();
 
+    /**
+     * If supports minecraft
+     *
+     * @return true/false
+     */
     boolean supportMinecraft();
 
     /**

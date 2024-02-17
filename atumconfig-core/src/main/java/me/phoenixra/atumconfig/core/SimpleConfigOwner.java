@@ -7,26 +7,23 @@ import me.phoenixra.atumconfig.core.config.AtumConfigManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.logging.Logger;
+
 
 public abstract class SimpleConfigOwner implements ConfigOwner {
     @Getter
     private String name;
     @Getter
     private File dataFolder;
-    @Getter
-    private Logger logger;
 
     @Getter
     private ConfigManager configManager;
 
     public SimpleConfigOwner(@NotNull String name,
-                             @NotNull File dataFolder,
-                             @NotNull Logger logger){
+                             @NotNull File dataFolder){
         this.name = name;
         this.dataFolder = dataFolder;
-        this.logger = logger;
 
         this.configManager = new AtumConfigManager(this);
     }
+
 }

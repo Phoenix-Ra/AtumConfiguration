@@ -49,7 +49,7 @@ public abstract class ConfigCategory {
         beforeReload();
         clear();
         File dir = new File(configOwner.getDataFolder(), directory);
-        getConfigOwner().getLogger().info("Reloading " + id + " configs...");
+        getConfigOwner().logInfo("Reloading " + id + " configs...");
         //@TODO add check for missing files
         if (!dir.exists()) {
             loadDefaults();
@@ -75,11 +75,11 @@ public abstract class ConfigCategory {
                     continue;
                 }
                 InputStream stream = configOwner.getClass().getResourceAsStream(path);
-                getConfigOwner().getLogger().info("Loading default config " + path + " CLASS: " + configOwner.getClass());
+                getConfigOwner().logInfo("Loading default config " + path + " CLASS: " + configOwner.getClass());
                 if (stream == null) continue;
                 Files.copy(stream, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
             } catch (Exception e) {
-                getConfigOwner().getLogger().severe(Arrays.toString(e.getStackTrace()));
+                getConfigOwner().logError(Arrays.toString(e.getStackTrace()));
             }
         }
 

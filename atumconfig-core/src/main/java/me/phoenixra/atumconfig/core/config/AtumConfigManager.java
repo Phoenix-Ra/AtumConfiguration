@@ -52,10 +52,10 @@ public class AtumConfigManager implements ConfigManager {
             try {
                 entry.getValue().reload();
             }catch (Exception exception){
-                configOwner.getLogger().warning(
+                configOwner.logWarning(
                     "Caught an Exception while trying to reload the config with name:"+ entry.getKey()
                 );
-                getConfigOwner().getLogger().severe(Arrays.toString(exception.getStackTrace()));
+                getConfigOwner().logError(Arrays.toString(exception.getStackTrace()));
             }
         }
         removal.forEach(configs::remove);
@@ -72,10 +72,10 @@ public class AtumConfigManager implements ConfigManager {
             try {
                 entry.getValue().save();
             }catch (Exception exception){
-                configOwner.getLogger().warning(
+                configOwner.logWarning(
                     "Caught an Exception while trying to save the config with name:"+ entry.getKey()
                 );
-                getConfigOwner().getLogger().severe(Arrays.toString(exception.getStackTrace()));
+                getConfigOwner().logError(Arrays.toString(exception.getStackTrace()));
             }
         }
         removal.forEach(configs::remove);

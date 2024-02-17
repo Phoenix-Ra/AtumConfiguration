@@ -106,7 +106,7 @@ public class PlaceholderManager {
                         out.getSecond()
                 );
             } catch (InterruptedException | ExecutionException e) {
-                configOwner.getLogger().severe(
+                configOwner.logError(
                         Arrays.toString(e.getStackTrace())
                 );
 

@@ -316,7 +316,7 @@ public class FileUtils {
             streamFiles.close();
             fileSystem.close();
         } catch (Exception ex) {
-            configOwner.getLogger().warning("An error occurred while trying to load files:\n " + Arrays.toString(ex.getStackTrace()));
+            configOwner.logWarning("An error occurred while trying to load files:\n " + Arrays.toString(ex.getStackTrace()));
         }
 
         return files;

@@ -44,6 +44,7 @@ public class PlaceholderManager {
     /**
      * Translate all placeholders without a placeholder context.
      *
+     * @param configOwner the config owner
      * @param text The text that may contain placeholders to translate.
      * @return The text, translated.
      */

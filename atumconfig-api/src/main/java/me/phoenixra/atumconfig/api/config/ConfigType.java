@@ -34,7 +34,9 @@ public enum ConfigType {
      *
      *
      * @param file the file
+     * @return the config type
      */
+    @NotNull
     public static ConfigType fromFile(File file){
         switch (file.getName().split("\\.")[0]){
             case "yml":

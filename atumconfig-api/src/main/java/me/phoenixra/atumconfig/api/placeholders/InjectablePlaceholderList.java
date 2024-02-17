@@ -83,6 +83,7 @@ public interface InjectablePlaceholderList {
 
     /**
      * Remove placeholders
+     * @param placeholders the placeholders to remove
      */
     void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders);
 

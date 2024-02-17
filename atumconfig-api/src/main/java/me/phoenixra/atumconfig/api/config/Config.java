@@ -63,11 +63,11 @@ public interface Config extends InjectablePlaceholderList {
 
     /**
      * Set an object in config
-     * <p></p>
+     * <br>
      * Set null to remove the config section
-     * <p></p>
+     * <br>
      * You can also set a {@link Config} object, so it will be a subsection
-     * <p></p>
+     * <br>
      * If you want to set it to config file as well,
      * use {@link LoadableConfig#save()}
      *
@@ -252,7 +252,7 @@ public interface Config extends InjectablePlaceholderList {
 
     /**
      * Get the formatted string
-     * <p></p>
+     * <br><br>
      * The string will be formatted
      * with colors(if mc support enabled) and global placeholders
      *
@@ -266,7 +266,7 @@ public interface Config extends InjectablePlaceholderList {
 
     /**
      * Get the formatted string
-     * <p></p>
+     * <br><br>
      * The string will be formatted
      * with colors(if mc support enabled) and placeholders
      *
@@ -282,7 +282,7 @@ public interface Config extends InjectablePlaceholderList {
 
     /**
      * Get the formatted string
-     * <p></p>
+     * <br><br>
      * The string will be formatted
      * with colors(if mc support enabled) and global placeholders
      *
@@ -296,7 +296,7 @@ public interface Config extends InjectablePlaceholderList {
 
     /**
      * Get the formatted string
-     * <p></p>
+     * <br><br>
      * The string will be formatted
      * with the placeholders and colors(if mc support enabled)
      *
@@ -340,7 +340,7 @@ public interface Config extends InjectablePlaceholderList {
 
     /**
      * Get the formatted string list
-     * <p></p>
+     * <br><br>
      * The string list will be formatted
      * with colors(if mc support enabled) and global placeholders
      *
@@ -354,7 +354,7 @@ public interface Config extends InjectablePlaceholderList {
 
     /**
      * Get the formatted string list
-     * <p></p>
+     * <br><br>
      * The string list will be formatted
      * with the placeholders and colors(if mc support enabled)
      *
@@ -370,7 +370,7 @@ public interface Config extends InjectablePlaceholderList {
 
     /**
      * Get the formatted string list
-     * <p></p>
+     * <br><br>
      * The string list will be formatted
      * with colors(if mc support enabled) and global placeholders
      *
@@ -384,7 +384,7 @@ public interface Config extends InjectablePlaceholderList {
 
     /**
      * Get the formatted string list
-     * <p></p>
+     * <br><br>
      * The string list will be formatted
      * with the placeholders and colors(if mc support enabled)
      *
@@ -415,7 +415,7 @@ public interface Config extends InjectablePlaceholderList {
 
     /**
      * Get the AtumConfig subsection
-     * <p></p>
+     * <br><br>
      * Works the same way as FileConfiguration#getConfigurationSection
      *
      * @param path  The path.
@@ -434,7 +434,7 @@ public interface Config extends InjectablePlaceholderList {
 
     /**
      * Get the AtumConfig subsection
-     * <p></p>
+     * <br><br>
      * Works the same way as FileConfiguration#getConfigurationSection
      *
      * @param path  The path.

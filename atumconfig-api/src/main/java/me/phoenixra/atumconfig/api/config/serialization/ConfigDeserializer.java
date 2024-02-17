@@ -16,6 +16,7 @@ public interface ConfigDeserializer<T> {
     /**
      * Load an object from config
      *
+     * @param configOwner the config owner
      * @param config The config.
      * @return The object.
      */

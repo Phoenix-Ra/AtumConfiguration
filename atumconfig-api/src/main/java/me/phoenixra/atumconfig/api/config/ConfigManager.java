@@ -21,11 +21,11 @@ public interface ConfigManager {
     /**
      * Loads an existing config from the configOwner folder
      * and adds it to a configManager
-     * <p></p>
+     * <br><br>
      * if specified config doesn't exist
      * creates a new config with content
      * from the config owner resources
-     * <p></p>
+     * <br><br>
      *
      * @param name name of a config (without extension)
      * @param directory The directory of a config. Use empty if root directory

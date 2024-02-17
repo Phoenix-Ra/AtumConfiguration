@@ -26,6 +26,7 @@ public abstract class ConfigCategory {
      * Config Category class
      *
      * @param configOwner       the config owner
+     * @param configType        the config type
      * @param id                the category id
      * @param directory         the directory path
      * @param supportSubFolders if accept configs from subFolders
@@ -92,12 +93,15 @@ public abstract class ConfigCategory {
 
     /**
      * Accept the config object loaded from file
+     *
+     * @param id the config id
+     * @param config the config object
      */
     protected abstract void acceptConfig(@NotNull String id, @NotNull Config config);
 
     /**
      * Called before category reload
-     * <p></p>
+     * <br><br>
      * Override to add implementation
      */
     public void beforeReload() {
@@ -105,7 +109,7 @@ public abstract class ConfigCategory {
 
     /**
      * Called after category reload
-     * <p></p>
+     * <br><br>
      * Override to add implementation
      */
     public void afterReload() {

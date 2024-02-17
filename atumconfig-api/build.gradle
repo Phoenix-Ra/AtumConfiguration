@@ -8,3 +8,12 @@ version = project_version
 dependencies {
     compileOnly 'com.google.code.gson:gson:2.10.1'
 }
+
+publishing {
+    publications {
+        shadow(MavenPublication) {
+            from components.java
+            artifactId 'atumconfig-api'
+        }
+    }
+}

@@ -16,3 +16,11 @@ dependencies {
     implementation 'com.github.Redempt:Crunch:2.0.3'
 
 }
+publishing {
+    publications {
+        shadow(MavenPublication) {
+            from components.java
+            artifactId 'atumconfig-core'
+        }
+    }
+}

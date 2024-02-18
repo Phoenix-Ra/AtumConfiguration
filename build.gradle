@@ -51,6 +51,9 @@ allprojects {
     build{
         dependsOn(shadowJar)
     }
+    shadowJar{
+        archiveClassifier.set('')
+    }
 
 
     task javadocJar(type: Jar, dependsOn: javadoc) {

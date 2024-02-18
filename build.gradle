@@ -1,4 +1,36 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
+buildscript {
+    //-------VERSIONING-------
+    def versionPropsFile = file('version.properties')
+    def Properties versionProps = new Properties()
 
+    versionProps.load(new FileInputStream(versionPropsFile))
+
+    def version_active = versionProps['version.active'].toBoolean()
+    def isSnapshot     = versionProps['version.snapshot'].toBoolean()
+    def version_major  = versionProps['version.major'].toInteger()
+    def version_minor  = versionProps['version.minor'].toInteger()
+    def version_patch  = versionProps['version.patch'].toInteger()
+    def version_build  = versionProps['version.build'].toInteger()
+
+
+    if (isSnapshot) {
+        if(version_active){
+            version_build += 1
+        }
+        version = "${version_major}.${version_minor}.${version_patch}-snapshot#${version_build}"
+        System.out.println("VERSIONING-SNAPSHOT")
+    } else {
+        version = "${version_major}.${version_minor}.${version_patch}"
+        System.out.println("VERSIONING-RELEASE")
+
+    }
+
+    project.version = version
+    //-------VERSIONING END-------
+}
 plugins{
     id 'java'
     id 'java-library'
@@ -6,9 +38,39 @@ plugins{
     id 'maven-publish'
 }
 archivesBaseName = project_name
-
 group = project_group
-version = project_version
+
+//------VERSION UPDATE IN FILE------
+task updateVersion{
+    def versionPropsFile = file('version.properties')
+    def Properties versionProps = new Properties()
+
+    versionProps.load(new FileInputStream(versionPropsFile))
+
+    def version_active = versionProps['version.active'].toBoolean()
+    def isSnapshot     = versionProps['version.snapshot'].toBoolean()
+    def version_build  = isSnapshot?
+            project.version.toString().split("#")[1] : 0
+    if(version_active){
+        def propsFilePath = file('version.properties').absolutePath
+        def lines = Files.readAllLines(Paths.get(propsFilePath))
+        def updatedLines = []
+        lines.each { line ->
+            if (line.startsWith("version.build=")) {
+                line = "version.build=$version_build"
+            } else if (line.startsWith("version.snapshot=")) {
+                line = "version.snapshot=true"
+            }
+            updatedLines.add(line)
+        }
+        Files.write(Paths.get(propsFilePath), updatedLines, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)
+        System.out.println("UPDATING BUILD VERSION")
+    }
+}
+//------VERSION UPDATE FINISH------
+
+
+
 
 compileJava {
 
@@ -64,6 +126,7 @@ allprojects {
         archives javadocJar
     }
 }
+compileJava.dependsOn(updateVersion)
 
 dependencies {
     implementation(project('atumconfig-api'))

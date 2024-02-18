@@ -3,7 +3,7 @@ plugins {
 }
 
 group = project_group
-version = project_version
+version = rootProject.version
 
 dependencies {
     compileOnly 'com.google.code.gson:gson:2.10.1'
@@ -13,7 +13,7 @@ publishing {
     publications {
         jar(MavenPublication) {
             from components.java
-            artifactId 'api'
+            artifactId 'atumconfig-api'
             artifact javadocJar
         }
     }

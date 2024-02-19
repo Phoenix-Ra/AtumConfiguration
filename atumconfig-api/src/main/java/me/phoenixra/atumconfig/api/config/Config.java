@@ -53,6 +53,24 @@ public interface Config extends InjectablePlaceholderList {
     }
 
     /**
+     * Apply data to config.
+     * <br>
+     * It will remove the current data.
+     * @param values the map to apply
+     */
+    void applyData(Map<String, Object> values);
+
+    /**
+     * Apply data to config from different config
+     * <br>
+     * It will remove the current data.
+     * @param config the config to get data from
+     */
+    default void applyData(Config config){
+        applyData(config.toMap());
+    }
+
+    /**
      * Get an object in config
      *
      * @param path The path.

@@ -35,7 +35,8 @@ public class AtumConfig implements Config {
     public AtumConfig(ConfigOwner configOwner, ConfigType configType) {
         this(configOwner, configType, new ConcurrentHashMap<>());
     }
-    protected void applyData(Map<String, Object> values){
+    @Override
+    public void applyData(Map<String, Object> values){
         this.values.clear();
         this.values.putAll(values);
     }

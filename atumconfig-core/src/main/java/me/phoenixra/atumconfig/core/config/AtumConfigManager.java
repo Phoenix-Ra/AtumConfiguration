@@ -62,6 +62,10 @@ public class AtumConfigManager implements ConfigManager {
             }
         }
         removal.forEach(configs::remove);
+
+        for (Map.Entry<String, ConfigCategory> entry : configCategoryRegistry.entrySet()) {
+            entry.getValue().reload();
+        }
     }
 
     @Override

@@ -4,6 +4,8 @@ import me.phoenixra.atumconfig.api.config.category.ConfigCategory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Map;
 
 public interface ConfigManager {
@@ -18,6 +20,28 @@ public interface ConfigManager {
     @NotNull
     Config createConfig(@Nullable Map<String, Object> values,
                         @NotNull ConfigType type);
+
+    /**
+     * Create config from stream
+     *
+     * @param stream The stream to read from
+     * @param type   The config type.
+     * @return The config
+     */
+    @NotNull
+    Config createConfigFromStream(@NotNull InputStream stream,
+                                  @NotNull ConfigType type);
+
+    /**
+     * Create config from string
+     *
+     * @param input  The string value holding data compatible with config type
+     * @param type   The config type.
+     * @return The config
+     */
+    @NotNull
+    Config createConfigFromString(@NotNull String input,
+                                  @NotNull ConfigType type);
 
     /**
      * Loads an existing config from the configOwner folder

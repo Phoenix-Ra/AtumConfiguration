@@ -8,10 +8,13 @@ import me.phoenixra.atumconfig.api.config.ConfigManager;
 import me.phoenixra.atumconfig.api.config.ConfigType;
 import me.phoenixra.atumconfig.api.config.LoadableConfig;
 import me.phoenixra.atumconfig.api.config.category.ConfigCategory;
+import me.phoenixra.atumconfig.core.config.typehandlers.ConfigTypeHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import redempt.crunch.functional.EvaluationEnvironment;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,6 +38,24 @@ public class AtumConfigManager implements ConfigManager {
     @Override
     public @NotNull Config createConfig(@Nullable Map<String, Object> values, @NotNull ConfigType type) {
         return new AtumConfig(configOwner,type,values);
+    }
+
+    @Override
+    public @NotNull Config createConfigFromStream(@NotNull InputStream stream, @NotNull ConfigType type) {
+        InputStreamReader reader = new InputStreamReader(stream);
+        String s = ConfigTypeHandler.readToString(reader);
+        return createConfig(
+                ConfigTypeHandler.toMap(getConfigOwner(),type,s),
+                type
+        );
+    }
+
+    @Override
+    public @NotNull Config createConfigFromString(@NotNull String input, @NotNull ConfigType type) {
+        return createConfig(
+                ConfigTypeHandler.toMap(getConfigOwner(),type,input),
+                type
+        );
     }
 
     @Override

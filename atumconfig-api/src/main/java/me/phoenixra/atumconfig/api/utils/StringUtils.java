@@ -4,7 +4,7 @@ package me.phoenixra.atumconfig.api.utils;
 import me.phoenixra.atumconfig.api.ConfigOwner;
 import me.phoenixra.atumconfig.api.placeholders.PlaceholderManager;
 import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderContext;
-import me.phoenixra.atumconfig.tuples.PairRecord;
+import me.phoenixra.atumconfig.api.tuples.PairRecord;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

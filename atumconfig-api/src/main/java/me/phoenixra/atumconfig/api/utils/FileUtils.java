@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
-import me.phoenixra.atumconfig.tuples.PairRecord;
+import me.phoenixra.atumconfig.api.tuples.PairRecord;
 
 public class FileUtils {
     public static void writeTextToFile(File f, boolean append, String... text) throws IOException {

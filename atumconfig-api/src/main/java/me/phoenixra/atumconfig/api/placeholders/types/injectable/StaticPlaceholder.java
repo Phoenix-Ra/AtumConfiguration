@@ -2,7 +2,7 @@ package me.phoenixra.atumconfig.api.placeholders.types.injectable;
 
 import me.phoenixra.atumconfig.api.placeholders.InjectablePlaceholder;
 import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderContext;
-import me.phoenixra.atumconfig.utils.Objects;
+import me.phoenixra.atumconfig.api.utils.Objects;
 import me.phoenixra.atumconfig.api.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

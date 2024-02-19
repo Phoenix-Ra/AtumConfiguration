@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
-import me.phoenixra.atumconfig.tuples.PairRecord;
+import me.phoenixra.atumconfig.api.tuples.PairRecord;
 public abstract class ConfigCategory {
     @Getter
     private final ConfigOwner configOwner;

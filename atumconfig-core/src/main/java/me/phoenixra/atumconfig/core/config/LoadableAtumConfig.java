@@ -16,7 +16,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Map;
-import me.phoenixra.atumconfig.utils.Objects;
+import me.phoenixra.atumconfig.api.utils.Objects;
 
 public class LoadableAtumConfig extends AtumConfig implements LoadableConfig {
     protected String subDirectoryPath;

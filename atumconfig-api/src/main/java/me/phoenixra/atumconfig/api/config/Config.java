@@ -4,7 +4,7 @@ import me.phoenixra.atumconfig.api.ConfigOwner;
 import me.phoenixra.atumconfig.api.placeholders.InjectablePlaceholderList;
 import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderContext;
 import me.phoenixra.atumconfig.api.utils.StringUtils;
-import me.phoenixra.atumconfig.utils.Objects;
+import me.phoenixra.atumconfig.api.utils.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

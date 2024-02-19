@@ -1,4 +1,4 @@
-package me.phoenixra.atumconfig.tuples;
+package me.phoenixra.atumconfig.api.tuples;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

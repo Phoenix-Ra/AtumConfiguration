@@ -3,7 +3,7 @@ package me.phoenixra.atumconfig.api.placeholders;
 
 import me.phoenixra.atumconfig.api.ConfigOwner;
 import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderContext;
-import me.phoenixra.atumconfig.tuples.PairRecord;
+import me.phoenixra.atumconfig.api.tuples.PairRecord;
 import me.phoenixra.atumconfig.api.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 

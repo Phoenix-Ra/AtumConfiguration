@@ -1,4 +1,4 @@
-package me.phoenixra.atumconfig.utils;
+package me.phoenixra.atumconfig.api.utils;
 
 import java.util.Arrays;
 import java.util.Comparator;

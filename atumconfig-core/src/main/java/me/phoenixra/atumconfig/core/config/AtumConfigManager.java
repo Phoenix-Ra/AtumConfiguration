@@ -7,6 +7,7 @@ import me.phoenixra.atumconfig.api.config.Config;
 import me.phoenixra.atumconfig.api.config.ConfigManager;
 import me.phoenixra.atumconfig.api.config.ConfigType;
 import me.phoenixra.atumconfig.api.config.LoadableConfig;
+import me.phoenixra.atumconfig.api.config.category.ConfigCategory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import redempt.crunch.functional.EvaluationEnvironment;
@@ -20,8 +21,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AtumConfigManager implements ConfigManager {
 
     @Getter
-    private ConfigOwner configOwner;
-    private Map<String, LoadableConfig> configs = new ConcurrentHashMap<>();
+    protected ConfigOwner configOwner;
+    protected Map<String, LoadableConfig> configs = new ConcurrentHashMap<>();
+    protected Map<String, ConfigCategory> configCategoryRegistry = new ConcurrentHashMap<>();
+
 
     @Getter @Setter
     private EvaluationEnvironment evaluationEnvironment = new EvaluationEnvironment();
@@ -92,4 +95,30 @@ public class AtumConfigManager implements ConfigManager {
         configs.put(config.getName(), config);
         return this;
     }
+
+    @Override
+    public void reloadConfigCategory(@NotNull String id) {
+        ConfigCategory config = configCategoryRegistry.get(id);
+        if (config == null) {
+            return;
+        }
+        try {
+            config.reload();
+        }catch (Exception exception){
+            getConfigOwner().logWarning(
+                    "Caught an Exception while trying to reload the config category with id:"+ config.getId()+
+                            "\n "+ Arrays.toString(exception.getStackTrace())
+            );
+        }
+    }
+
+    @Override
+    public @Nullable ConfigCategory getConfigCategory(@NotNull String id) {
+        return configCategoryRegistry.get(id);
+    }
+    @Override
+    public void addConfigCategory(@NotNull ConfigCategory configCategory) {
+        configCategoryRegistry.put(configCategory.getId(), configCategory);
+    }
+
 }

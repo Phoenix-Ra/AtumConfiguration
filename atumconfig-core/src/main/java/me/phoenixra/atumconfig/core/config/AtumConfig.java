@@ -18,12 +18,12 @@ import java.util.stream.Collectors;
 
 public class AtumConfig implements Config {
     @Getter
-    private ConfigOwner configOwner;
-    private ConfigType configType;
+    protected ConfigOwner configOwner;
+    protected ConfigType configType;
 
-    private List<InjectablePlaceholder> injections = Collections.synchronizedList(new ArrayList<>());
+    protected List<InjectablePlaceholder> injections = Collections.synchronizedList(new ArrayList<>());
 
-    private ConcurrentHashMap<String, Object> values = new ConcurrentHashMap<>();
+    protected ConcurrentHashMap<String, Object> values = new ConcurrentHashMap<>();
 
     public AtumConfig(ConfigOwner configOwner, ConfigType configType, Map<String, Object> values) {
         this.configOwner = configOwner;

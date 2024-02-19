@@ -1,5 +1,6 @@
 package me.phoenixra.atumconfig.api.config;
 import me.phoenixra.atumconfig.api.ConfigOwner;
+import me.phoenixra.atumconfig.api.config.category.ConfigCategory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,6 +71,30 @@ public interface ConfigManager {
      */
     @NotNull
     ConfigManager addConfig(@NotNull LoadableConfig config);
+
+    /**
+     * Reload the config category
+     *
+     * @param id the id of a category
+     */
+    void reloadConfigCategory(@NotNull String id);
+
+    /**
+     * Get config category added to the manager
+     * or null if not found
+     *
+     * @param id The id
+     * @return The config category
+     */
+    @Nullable
+    ConfigCategory getConfigCategory(@NotNull String id);
+
+    /**
+     * Add new config category
+     *
+     * @param configCategory The config category
+     */
+    void addConfigCategory(@NotNull ConfigCategory configCategory);
 
     /**
      * Get the config owner.

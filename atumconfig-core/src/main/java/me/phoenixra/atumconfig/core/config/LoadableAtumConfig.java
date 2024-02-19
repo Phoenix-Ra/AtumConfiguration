@@ -19,9 +19,9 @@ import java.util.Map;
 import me.phoenixra.atumconfig.utils.Objects;
 
 public class LoadableAtumConfig extends AtumConfig implements LoadableConfig {
-    private String subDirectoryPath;
+    protected String subDirectoryPath;
     @Getter
-    private File file;
+    protected File file;
     public LoadableAtumConfig(ConfigOwner configOwner,
                               ConfigType type,
                               String subDirectoryPath,

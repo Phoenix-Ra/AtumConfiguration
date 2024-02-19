@@ -28,7 +28,9 @@ public class AtumConfig implements Config {
     public AtumConfig(ConfigOwner configOwner, ConfigType configType, Map<String, Object> values) {
         this.configOwner = configOwner;
         this.configType = configType;
-        this.values.putAll(values);
+        if(values!=null) {
+            this.values.putAll(values);
+        }
     }
     public AtumConfig(ConfigOwner configOwner, ConfigType configType) {
         this(configOwner, configType, new ConcurrentHashMap<>());

@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 public class ConfigWrapper<T extends Config> implements Config {
 
@@ -37,6 +38,11 @@ public class ConfigWrapper<T extends Config> implements Config {
     @Override
     public @NotNull List<String> getKeys(boolean deep) {
         return handle.getKeys(deep);
+    }
+
+    @Override
+    public void applyData(Map<String, Object> values) {
+        handle.applyData(values);
     }
 
     @Override

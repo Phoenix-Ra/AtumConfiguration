@@ -36,23 +36,23 @@ public class MergedInjectableContext implements InjectablePlaceholderList {
     }
 
     @Override
-    public void addInjectablePlaceholder(@NotNull final Iterable<InjectablePlaceholder> placeholders) {
+    public void addInjectablePlaceholder(@NotNull final Iterable<InjectablePlaceholder> placeholders, boolean deep) {
         for (InjectablePlaceholder placeholder : placeholders) {
             extraInjections.add(placeholder);
         }
     }
 
     @Override
-    public void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders) {
+    public void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep) {
         for (InjectablePlaceholder placeholder : placeholders) {
             extraInjections.remove(placeholder);
         }
     }
 
     @Override
-    public void clearInjectedPlaceholders() {
-        baseContext.clearInjectedPlaceholders();
-        additionalContext.clearInjectedPlaceholders();
+    public void clearInjectedPlaceholders(boolean deep) {
+        baseContext.clearInjectedPlaceholders(deep);
+        additionalContext.clearInjectedPlaceholders(deep);
         extraInjections.clear();
     }
 

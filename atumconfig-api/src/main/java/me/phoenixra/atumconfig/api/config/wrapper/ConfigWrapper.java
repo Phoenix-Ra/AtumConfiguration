@@ -126,18 +126,18 @@ public class ConfigWrapper<T extends Config> implements Config {
     }
 
     @Override
-    public void addInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders) {
-        handle.addInjectablePlaceholder(placeholders);
+    public void addInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep) {
+        handle.addInjectablePlaceholder(placeholders,deep);
     }
 
     @Override
-    public void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders) {
-        handle.removeInjectablePlaceholder(placeholders);
+    public void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep) {
+        handle.removeInjectablePlaceholder(placeholders,deep);
     }
 
     @Override
-    public void clearInjectedPlaceholders() {
-        handle.clearInjectedPlaceholders();
+    public void clearInjectedPlaceholders(boolean deep) {
+        handle.clearInjectedPlaceholders(deep);
     }
 
     @Override

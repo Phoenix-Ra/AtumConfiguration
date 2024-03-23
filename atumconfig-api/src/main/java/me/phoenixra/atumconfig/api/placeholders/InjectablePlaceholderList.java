@@ -22,17 +22,17 @@ public interface InjectablePlaceholderList {
      */
     InjectablePlaceholderList EMPTY_INJECTABLE = new InjectablePlaceholderList() {
         @Override
-        public void addInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders) {
+        public void addInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep) {
             // Do nothing.
         }
 
         @Override
-        public void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders) {
+        public void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep) {
             // Do nothing.
         }
 
         @Override
-        public void clearInjectedPlaceholders() {
+        public void clearInjectedPlaceholders( boolean deep) {
             // Do nothing.
         }
 
@@ -47,28 +47,34 @@ public interface InjectablePlaceholderList {
     /**
      * Inject arguments.
      *
+     * @param deep use true if you want to inject
+     *             placeholder for the parent and all its children (for example config and its subsections).
      * @param placeholders The placeholders.
      */
-    default void injectPlaceholders(@NotNull StaticPlaceholder... placeholders) {
-        this.addInjectablePlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()));
+    default void injectPlaceholders(boolean deep, @NotNull StaticPlaceholder... placeholders) {
+        this.addInjectablePlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()), deep);
     }
 
     /**
      * Inject arguments.
      *
+     * @param deep use true if you want to inject
+     *             placeholder for the parent and all its children (for example config and its subsections).
      * @param placeholders The placeholders.
      */
-    default void injectPlaceholders(@NotNull InjectablePlaceholder... placeholders) {
-        this.addInjectablePlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()));
+    default void injectPlaceholders(boolean deep, @NotNull InjectablePlaceholder... placeholders) {
+        this.addInjectablePlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()),deep);
     }
 
     /**
      * Remove arguments.
      *
+     * @param deep use true if you want to remove
+     *             placeholders for the parent and all its children (for example config and its subsections).
      * @param placeholders The placeholders.
      */
-    default void removeInjectablePlaceholder(@NotNull InjectablePlaceholder... placeholders) {
-        this.removeInjectablePlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()));
+    default void removeInjectablePlaceholder(boolean deep, @NotNull InjectablePlaceholder... placeholders) {
+        this.removeInjectablePlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()),deep);
     }
 
 
@@ -78,19 +84,25 @@ public interface InjectablePlaceholderList {
      * If a placeholder already has the same pattern, it should be replaced.
      *
      * @param placeholders The placeholders.
+     * @param deep use true if you want to inject
+     *             placeholder for the parent and all its children (for example config and its subsections).
      */
-    void addInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders);
+    void addInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep);
 
     /**
      * Remove placeholders
      * @param placeholders the placeholders to remove
+     * @param deep use true if you want to remove
+     *             placeholder for the parent and all its children (for example config and its subsections).
      */
-    void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders);
+    void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep);
 
     /**
      * Clear injected placeholders.
+     * @param deep use true if you want to clear
+     *             placeholders for the parent and all its children (for example config and its subsections).
      */
-    void clearInjectedPlaceholders();
+    void clearInjectedPlaceholders(boolean deep);
 
     /**
      * Get injected placeholders.

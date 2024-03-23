@@ -37,7 +37,7 @@ public class PlaceholderContext {
      * @param injectableContext The PlaceholderInjectable parseContext.
      */
     public PlaceholderContext(@Nullable final InjectablePlaceholderList injectableContext) {
-        this.injectableContext = Objects.requireNonNullElse(injectableContext, EMPTY_INJECTABLE);
+        this.injectableContext = Objects.requireNonNullElse(injectableContext, InjectablePlaceholderList.EMPTY_INJECTABLE);
     }
 
     /**
@@ -100,27 +100,7 @@ public class PlaceholderContext {
                 '}';
     }
 
-    private static final InjectablePlaceholderList EMPTY_INJECTABLE = new InjectablePlaceholderList() {
-        @Override
-        public void addInjectablePlaceholder(@NotNull final Iterable<InjectablePlaceholder> placeholders) {
-            // Do nothing.
-        }
 
-        @Override
-        public void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders) {
-            // Do nothing.
-        }
-
-        @Override
-        public void clearInjectedPlaceholders() {
-            // Do nothing.
-        }
-
-        @Override
-        public @NotNull List<InjectablePlaceholder> getPlaceholderInjections() {
-            return Collections.emptyList();
-        }
-    };
     public static final PlaceholderContext EMPTY = new PlaceholderContext(
             null
     );

@@ -67,6 +67,7 @@ task updateVersion{
         System.out.println("UPDATING BUILD VERSION")
     }
 }
+shadowJar.dependsOn(updateVersion)
 //------VERSION UPDATE FINISH------
 
 
@@ -126,7 +127,6 @@ allprojects {
         archives javadocJar
     }
 }
-compileJava.dependsOn(updateVersion)
 
 dependencies {
     implementation(project('atumconfig-api'))

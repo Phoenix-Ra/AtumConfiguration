@@ -225,7 +225,7 @@ public class AtumConfig implements Config {
     }
 
     @Override
-    public void addInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders) {
+    public void addInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep) {
         for (InjectablePlaceholder placeholder : placeholders) {
             if (placeholder == null) {
                 continue;
@@ -235,21 +235,43 @@ public class AtumConfig implements Config {
             }
             injections.add(placeholder);
         }
+
+        if(deep){
+            for (Object object : values.values()) {
+                if (object instanceof Config) {
+                    ((Config) object).addInjectablePlaceholder(placeholders,true);
+                }
+            }
+        }
     }
 
     @Override
-    public void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders) {
+    public void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep) {
         for (InjectablePlaceholder placeholder : placeholders) {
             if (placeholder == null) {
                 continue;
             }
             injections.remove(placeholder);
         }
+        if(deep){
+            for (Object object : values.values()) {
+                if (object instanceof Config) {
+                    ((Config) object).removeInjectablePlaceholder(placeholders,true);
+                }
+            }
+        }
     }
 
     @Override
-    public void clearInjectedPlaceholders() {
+    public void clearInjectedPlaceholders(boolean deep) {
         injections.clear();
+        if(deep) {
+            for (Object object : values.values()) {
+                if (object instanceof Config) {
+                    ((Config) object).clearInjectedPlaceholders(true);
+                }
+            }
+        }
     }
     @Override
     public @NotNull List<InjectablePlaceholder> getPlaceholderInjections() {

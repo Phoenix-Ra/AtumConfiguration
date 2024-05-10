@@ -33,7 +33,7 @@ public class TypeHandlerJson extends ConfigTypeHandler {
         protected Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .disableHtmlEscaping()
-                .registerTypeAdapter(Config.class, this)
+                .registerTypeAdapter(AtumConfigSection.class, this)
                 .create();
 
 

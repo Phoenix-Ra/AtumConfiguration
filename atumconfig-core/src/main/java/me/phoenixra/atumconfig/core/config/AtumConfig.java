@@ -88,7 +88,11 @@ public class AtumConfig implements Config {
             }
             Config section = getSubsectionOrNull(nearestPath);
             if(section==null){
-                section = new AtumConfig(getConfigOwner(),configType);
+                section = new AtumConfigSection(
+                        getConfigOwner(),
+                        configType,
+                        null
+                );
             }
             section.set(remainingPath, obj);
             values.put(nearestPath, section);

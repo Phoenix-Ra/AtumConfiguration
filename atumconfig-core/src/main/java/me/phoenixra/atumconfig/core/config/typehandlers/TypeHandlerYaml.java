@@ -40,13 +40,21 @@ public class TypeHandlerYaml extends ConfigTypeHandler{
     public class YamlRepresenter extends Representer {
         public YamlRepresenter(DumperOptions dumperOptions) {
             super(dumperOptions);
-            this.multiRepresenters.put(Config.class, new RepresentConfig());
+            this.multiRepresenters.put(
+                    Config.class,
+                    new RepresentConfig(this.multiRepresenters.get(Map.class))
+            );
         }
 
         private class RepresentConfig implements Represent {
+            private Represent handle;
+            protected RepresentConfig(Represent handle){
+                this.handle = handle;
+            }
             @Override
             public Node representData(Object data) {
-                return representers.get(Object.class).representData(((Config) data).toMap());
+
+                return handle.representData(((Config) data).toMap());
             }
         }
     }

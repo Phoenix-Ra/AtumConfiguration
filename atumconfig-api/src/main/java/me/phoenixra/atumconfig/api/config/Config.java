@@ -96,6 +96,108 @@ public interface Config extends InjectablePlaceholderList {
              @Nullable Object obj);
 
     /**
+     * Get the byte
+     *
+     * @param path The path.
+     * @return The byte or 0 if not found.
+     **/
+    default byte getByte(@NotNull String path) {
+        return Objects.requireNonNullElse(getByteOrNull(path), (byte)0);
+    }
+
+    /**
+     * Get the byte
+     *
+     * @param path The path.
+     * @param def  The default value.
+     * @return The byte or default value if not found.
+     */
+    default byte getByteOrDefault(@NotNull String path,
+                                  byte def) {
+        return Objects.requireNonNullElse(getByteOrNull(path), def);
+    }
+
+    /**
+     * Get the byte
+     *
+     * @param path The path.
+     * @return The byte or null if not found.
+     */
+    @Nullable
+    Byte getByteOrNull(@NotNull String path);
+
+    /**
+     * Get the byte list
+     *
+     * @param path The path.
+     * @return The byte list or empty list if not found.
+     */
+    @NotNull
+    default List<Byte> getByteList(@NotNull String path) {
+        return Objects.requireNonNullElse(getByteListOrNull(path), new ArrayList<>());
+    }
+
+    /**
+     * Get the byte list
+     *
+     * @param path The path.
+     * @return The byte list or null if not found.
+     */
+    @Nullable
+    List<Byte> getByteListOrNull(@NotNull String path);
+
+    /**
+     * Get the short
+     *
+     * @param path The path.
+     * @return The short or 0 if not found.
+     **/
+    default short getShort(@NotNull String path) {
+        return Objects.requireNonNullElse(getShortOrNull(path), (short)0);
+    }
+
+    /**
+     * Get the short
+     *
+     * @param path The path.
+     * @param def  The default value.
+     * @return The short or default value if not found.
+     */
+    default short getShortOrDefault(@NotNull String path,
+                                    short def) {
+        return Objects.requireNonNullElse(getShortOrNull(path), def);
+    }
+
+    /**
+     * Get the short
+     *
+     * @param path The path.
+     * @return The short or null if not found.
+     */
+    @Nullable
+    Short getShortOrNull(@NotNull String path);
+
+    /**
+     * Get the short list
+     *
+     * @param path The path.
+     * @return The short list or empty list if not found.
+     */
+    @NotNull
+    default List<Short> getShortList(@NotNull String path) {
+        return Objects.requireNonNullElse(getShortListOrNull(path), new ArrayList<>());
+    }
+
+    /**
+     * Get the short list
+     *
+     * @param path The path.
+     * @return The short list or null if not found.
+     */
+    @Nullable
+    List<Short> getShortListOrNull(@NotNull String path);
+
+    /**
      * Get the int
      *
      * @param path The path.
@@ -145,6 +247,107 @@ public interface Config extends InjectablePlaceholderList {
      */
     @Nullable
     List<Integer> getIntListOrNull(@NotNull String path);
+
+    /**
+     * Get the long
+     *
+     * @param path The path.
+     * @return The long or 0 if not found.
+     **/
+    default long getLong(@NotNull String path) {
+        return Objects.requireNonNullElse(getLongOrNull(path), 0L);
+    }
+
+    /**
+     * Get the long
+     *
+     * @param path The path.
+     * @param def  The default value.
+     * @return The long or default value if not found.
+     */
+    default long getLongOrDefault(@NotNull String path,
+                                 long def) {
+        return Objects.requireNonNullElse(getLongOrNull(path), def);
+    }
+
+    /**
+     * Get the long
+     *
+     * @param path The path.
+     * @return The long or null if not found.
+     */
+    @Nullable
+    Long getLongOrNull(@NotNull String path);
+
+    /**
+     * Get the long list
+     *
+     * @param path The path.
+     * @return The long list or empty list if not found.
+     */
+    @NotNull
+    default List<Long> getLongList(@NotNull String path) {
+        return Objects.requireNonNullElse(getLongListOrNull(path), new ArrayList<>());
+    }
+
+    /**
+     * Get the long list
+     *
+     * @param path The path.
+     * @return The long list or null if not found.
+     */
+    @Nullable
+    List<Long> getLongListOrNull(@NotNull String path);
+
+    /**
+     * Get the float
+     *
+     * @param path The path.
+     * @return The float or 0 if not found.
+     */
+    default float getFloat(@NotNull String path) {
+        return Objects.requireNonNullElse(getFloatOrNull(path), 0.0f);
+    }
+
+    /**
+     * Get the float
+     *
+     * @param path The path.
+     * @param def  The default value.
+     * @return The float or default value if not found.
+     */
+    default float getFloatOrDefault(@NotNull String path, float def) {
+        return Objects.requireNonNullElse(getFloatOrNull(path), def);
+    }
+
+    /**
+     * Get the float
+     *
+     * @param path The path.
+     * @return The float or null if not found.
+     */
+    @Nullable
+    Float getFloatOrNull(@NotNull String path);
+
+    /**
+     * Get the float list
+     *
+     * @param path The path.
+     * @return The float list or empty list if not found.
+     */
+    @NotNull
+    default List<Float> getFloatList(@NotNull String path) {
+        return Objects.requireNonNullElse(getFloatListOrNull(path), new ArrayList<>());
+    }
+
+    /**
+     * Get the float list
+     *
+     * @param path The path.
+     * @return The float list or null if not found.
+     */
+    @Nullable
+    List<Float> getFloatListOrNull(@NotNull String path);
 
     /**
      * Get the double

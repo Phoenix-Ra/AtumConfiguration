@@ -117,6 +117,36 @@ public class AtumConfig implements Config {
 
 
     @Override
+    public @Nullable Byte getByteOrNull(@NotNull String path) {
+        Object obj = get(path);
+        return (obj instanceof Number)? ((Number) obj).byteValue() : null;
+    }
+
+    @Override
+    public @Nullable List<Byte> getByteListOrNull(@NotNull String path) {
+        List<Number> list = getList(path, Number.class);
+        if(list == null){
+            return null;
+        }
+        return list.stream().map(Number::byteValue).collect(Collectors.toList());
+    }
+
+    @Override
+    public @Nullable Short getShortOrNull(@NotNull String path) {
+        Object obj = get(path);
+        return (obj instanceof Number)? ((Number) obj).shortValue() : null;
+    }
+
+    @Override
+    public @Nullable List<Short> getShortListOrNull(@NotNull String path) {
+        List<Number> list = getList(path, Number.class);
+        if(list == null){
+            return null;
+        }
+        return list.stream().map(Number::shortValue).collect(Collectors.toList());
+    }
+
+    @Override
     public @Nullable Integer getIntOrNull(@NotNull String path) {
         Object obj = get(path);
         return (obj instanceof Number)? ((Number) obj).intValue() : null;
@@ -130,6 +160,37 @@ public class AtumConfig implements Config {
         }
         return list.stream().map(Number::intValue).collect(Collectors.toList());
     }
+
+    @Override
+    public @Nullable Long getLongOrNull(@NotNull String path) {
+        Object obj = get(path);
+        return (obj instanceof Number)? ((Number) obj).longValue() : null;
+    }
+
+    @Override
+    public @Nullable List<Long> getLongListOrNull(@NotNull String path) {
+        List<Number> list = getList(path, Number.class);
+        if(list == null){
+            return null;
+        }
+        return list.stream().map(Number::longValue).collect(Collectors.toList());
+    }
+
+    @Override
+    public @Nullable Float getFloatOrNull(@NotNull String path) {
+        Object obj = get(path);
+        return (obj instanceof Number)? ((Number) obj).floatValue() : null;
+    }
+
+    @Override
+    public @Nullable List<Float> getFloatListOrNull(@NotNull String path) {
+        List<Number> list = getList(path, Number.class);
+        if(list == null){
+            return null;
+        }
+        return list.stream().map(Number::floatValue).collect(Collectors.toList());
+    }
+
     @Override
     public @Nullable Double getDoubleOrNull(@NotNull String path) {
         Object obj = get(path);
@@ -144,6 +205,7 @@ public class AtumConfig implements Config {
         }
         return list.stream().map(Number::doubleValue).collect(Collectors.toList());
     }
+
     @Override
     public @Nullable Boolean getBoolOrNull(@NotNull String path) {
         Object obj = get(path);

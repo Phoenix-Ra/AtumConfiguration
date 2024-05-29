@@ -56,6 +56,26 @@ public class ConfigWrapper<T extends Config> implements Config {
     }
 
     @Override
+    public @Nullable Byte getByteOrNull(@NotNull String path) {
+        return handle.getByteOrNull(path);
+    }
+
+    @Override
+    public @Nullable List<Byte> getByteListOrNull(@NotNull String path) {
+        return handle.getByteListOrNull(path);
+    }
+
+    @Override
+    public @Nullable Short getShortOrNull(@NotNull String path) {
+        return handle.getShortOrNull(path);
+    }
+
+    @Override
+    public @Nullable List<Short> getShortListOrNull(@NotNull String path) {
+        return handle.getShortListOrNull(path);
+    }
+
+    @Override
     public @Nullable Integer getIntOrNull(@NotNull String path) {
         return handle.getIntOrNull(path);
     }
@@ -63,6 +83,16 @@ public class ConfigWrapper<T extends Config> implements Config {
     @Override
     public @Nullable List<Integer> getIntListOrNull(@NotNull String path) {
         return handle.getIntListOrNull(path);
+    }
+
+    @Override
+    public @Nullable Long getLongOrNull(@NotNull String path) {
+        return handle.getLongOrNull(path);
+    }
+
+    @Override
+    public @Nullable List<Long> getLongListOrNull(@NotNull String path) {
+        return handle.getLongListOrNull(path);
     }
 
     @Override
@@ -85,6 +115,15 @@ public class ConfigWrapper<T extends Config> implements Config {
         return handle.getStringListOrNull(path);
     }
 
+    @Override
+    public @Nullable Float getFloatOrNull(@NotNull String path) {
+        return handle.getFloatOrNull(path);
+    }
+
+    @Override
+    public @Nullable List<Float> getFloatListOrNull(@NotNull String path) {
+        return handle.getFloatListOrNull(path);
+    }
     @Override
     public @Nullable Double getDoubleOrNull(@NotNull String path) {
         return handle.getDoubleOrNull(path);

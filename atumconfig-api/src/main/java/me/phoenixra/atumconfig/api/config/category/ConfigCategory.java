@@ -80,7 +80,7 @@ public abstract class ConfigCategory {
                 if (stream == null) continue;
                 Files.copy(stream, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
             } catch (Exception e) {
-                getConfigOwner().logError(Arrays.toString(e.getStackTrace()));
+                getConfigOwner().logError(null, e);
             }
         }
 

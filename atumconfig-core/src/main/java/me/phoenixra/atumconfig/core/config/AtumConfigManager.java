@@ -76,10 +76,13 @@ public class AtumConfigManager implements ConfigManager {
             try {
                 entry.getValue().reload();
             }catch (Exception exception){
-                configOwner.logWarning(
-                    "Caught an Exception while trying to reload the config with name:"+ entry.getKey()
+
+                getConfigOwner().logError(
+                        "Caught an Exception while " +
+                                "trying to reload the" +
+                                " config with name:"+ entry.getKey(),
+                        exception
                 );
-                getConfigOwner().logError(Arrays.toString(exception.getStackTrace()));
             }
         }
         removal.forEach(configs::remove);
@@ -100,10 +103,11 @@ public class AtumConfigManager implements ConfigManager {
             try {
                 entry.getValue().save();
             }catch (Exception exception){
-                configOwner.logWarning(
-                    "Caught an Exception while trying to save the config with name:"+ entry.getKey()
+                getConfigOwner().logError(
+                        "Caught an Exception while" +
+                                " trying to save the config with name:"+ entry.getKey(),
+                        exception
                 );
-                getConfigOwner().logError(Arrays.toString(exception.getStackTrace()));
             }
         }
         removal.forEach(configs::remove);

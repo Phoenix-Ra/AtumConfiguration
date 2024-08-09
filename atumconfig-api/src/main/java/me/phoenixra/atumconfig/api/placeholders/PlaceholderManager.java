@@ -108,7 +108,7 @@ public class PlaceholderManager {
                 );
             } catch (InterruptedException | ExecutionException e) {
                 configOwner.logError(
-                        Arrays.toString(e.getStackTrace())
+                        null, e
                 );
 
             }

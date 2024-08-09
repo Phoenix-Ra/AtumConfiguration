@@ -44,7 +44,7 @@ public class LoadableAtumConfig extends AtumConfig implements LoadableConfig {
             reload();
             configOwner.getConfigManager().addConfig(this);
         }catch (IOException e){
-            getConfigOwner().logError(Arrays.toString(e.getStackTrace()));
+            getConfigOwner().logError(null, e);
 
         }
     }
@@ -81,7 +81,7 @@ public class LoadableAtumConfig extends AtumConfig implements LoadableConfig {
 
             return requiredVersion != currentVersion;
         }catch (Exception e){
-            getConfigOwner().logError(Arrays.toString(e.getStackTrace()));
+            getConfigOwner().logError(null, e);
 
         }
         return false;
@@ -101,7 +101,7 @@ public class LoadableAtumConfig extends AtumConfig implements LoadableConfig {
                 }
                 Files.copy(inputStream, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
             } catch (Exception e) {
-                getConfigOwner().logError(Arrays.toString(e.getStackTrace()));
+                getConfigOwner().logError(null, e);
 
             }
         }

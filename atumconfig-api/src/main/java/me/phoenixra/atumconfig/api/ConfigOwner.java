@@ -2,6 +2,7 @@ package me.phoenixra.atumconfig.api;
 
 import me.phoenixra.atumconfig.api.config.ConfigManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
@@ -58,5 +59,22 @@ public interface ConfigOwner {
      * @param message the message
      */
     void logError(String message);
+
+
+    default void logError(@Nullable String message, Throwable throwable){
+        if(message != null){
+            logError(message);
+        }
+        for (StackTraceElement s : throwable.getStackTrace()) {
+            logError(s.toString());
+        }
+        if(throwable.getCause() != null) {
+            logError("Caused by:");
+            logError(throwable.getCause().toString());
+        }
+        for(Throwable err : throwable.getSuppressed()){
+            logError(null, err);
+        }
+    }
 
 }

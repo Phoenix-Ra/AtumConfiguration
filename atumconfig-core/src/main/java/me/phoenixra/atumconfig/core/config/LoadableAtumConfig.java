@@ -10,11 +10,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
 import java.util.Map;
 import me.phoenixra.atumconfig.api.utils.Objects;
 
@@ -62,9 +62,10 @@ public class LoadableAtumConfig extends AtumConfig implements LoadableConfig {
             if (inputStream == null) {
                 return false;
             }
-            Map<String,Object> mapFromJar = ConfigTypeHandler.toMap(getConfigOwner(),
-                getType(),
-                ConfigTypeHandler.toString(inputStream)
+            Map<String,Object> mapFromJar = ConfigTypeHandler.toMap(
+                    getConfigOwner(),
+                    getType(),
+                    ConfigTypeHandler.toString(inputStream)
             );
             //json somehow sees the integer as double
             int requiredVersion = (int) Double.parseDouble(
@@ -109,7 +110,8 @@ public class LoadableAtumConfig extends AtumConfig implements LoadableConfig {
 
     @Override
     public void reload() throws IOException {
-        InputStreamReader reader = new InputStreamReader(file.toURI().toURL().openStream());
+        InputStreamReader reader = new InputStreamReader(
+                file.toURI().toURL().openStream());
         String s = ConfigTypeHandler.readToString(reader);
         super.applyData(ConfigTypeHandler.toMap(getConfigOwner(),getType(),s));
     }
@@ -117,7 +119,9 @@ public class LoadableAtumConfig extends AtumConfig implements LoadableConfig {
     @Override
     public void save() throws IOException {
         if(file.delete()) {
-            Files.write(file.toPath(),toPlaintext().getBytes(),
+            Files.write(
+                    file.toPath(),toPlaintext()
+                            .getBytes(StandardCharsets.UTF_8),
                 StandardOpenOption.CREATE,
                 StandardOpenOption.WRITE
             );

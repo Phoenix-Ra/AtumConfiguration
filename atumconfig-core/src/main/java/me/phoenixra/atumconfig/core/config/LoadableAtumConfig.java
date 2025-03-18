@@ -26,7 +26,8 @@ public class LoadableAtumConfig extends AtumConfig implements LoadableConfig {
                               ConfigType type,
                               String subDirectoryPath,
                               String confName,
-                              boolean forceResourceLoad) {
+                              boolean forceResourceLoad,
+                              boolean checkUpdates) {
         super(configOwner,type);
         this.subDirectoryPath = subDirectoryPath;
         File dir = new File(configOwner.getDataFolder(), subDirectoryPath);
@@ -36,7 +37,7 @@ public class LoadableAtumConfig extends AtumConfig implements LoadableConfig {
         file = new File(dir, confName + "." + type.getFileExtension());
         if (!file.exists()) {
             createFile(forceResourceLoad);
-        }else if(shouldUpdateConfig()){
+        }else if(checkUpdates && shouldUpdateConfig()){
             file.delete();
             createFile(forceResourceLoad);
         }
@@ -48,12 +49,27 @@ public class LoadableAtumConfig extends AtumConfig implements LoadableConfig {
 
         }
     }
+    public LoadableAtumConfig(ConfigOwner configOwner,
+                              ConfigType type,
+                              String subDirectoryPath,
+                              String confName,
+                              boolean forceResourceLoad) {
+        this(
+                configOwner,
+                type,
+                subDirectoryPath,
+                confName,
+                forceResourceLoad,
+                false
+        );
+    }
     public LoadableAtumConfig(ConfigOwner configOwner, File file) {
         this(configOwner,ConfigType.fromFile(file),file.getPath()
                 .replace(configOwner.getDataFolder().getPath(),"")
                 .replace(file.getName(),""),
             file.getName().split("\\.")[0],
-            false
+            false,
+                false
         );
     }
 

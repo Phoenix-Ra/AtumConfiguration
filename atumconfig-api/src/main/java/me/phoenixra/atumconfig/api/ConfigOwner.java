@@ -44,24 +44,24 @@ public interface ConfigOwner {
      *
      * @param message the message
      */
-    void logInfo(String message);
+    void logInfo(@NotNull String message);
 
     /**
      * Log warning to console
      *
      * @param message the message
      */
-    void logWarning(String message);
+    void logWarning(@NotNull String message);
 
     /**
      * Log error to console
      *
      * @param message the message
      */
-    void logError(String message);
+    void logError(@NotNull String message);
 
 
-    default void logError(@Nullable String message, Throwable throwable){
+    default void logError(@Nullable String message, @NotNull Throwable throwable){
         if(message != null){
             logError(message);
         }

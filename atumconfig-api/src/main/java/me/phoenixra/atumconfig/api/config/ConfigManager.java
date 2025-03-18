@@ -58,6 +58,7 @@ public interface ConfigManager {
      * @param forceLoadResource if true - throws NullPointerException
      *                       when file not found inside the resources folder,
      *                          otherwise creates an empty file
+     * @param checkUpdates If should check updates from resources (experimental)
      * @return loaded config
      */
     @NotNull
@@ -65,8 +66,36 @@ public interface ConfigManager {
             @NotNull String name,
             @NotNull String directory,
             @NotNull ConfigType type,
-            boolean forceLoadResource
+            boolean forceLoadResource,
+            boolean checkUpdates
     );
+
+    /**
+     * Loads an existing config from the configOwner folder
+     * and adds it to a configManager
+     * <br><br>
+     * if specified config doesn't exist
+     * creates a new config with content
+     * from the config owner resources
+     * <br><br>
+     *
+     * @param name name of a config (without extension)
+     * @param directory The directory of a config. Use empty if root directory
+     * @param type The type of config
+     * @param forceLoadResource if true - throws NullPointerException
+     *                       when file not found inside the resources folder,
+     *                          otherwise creates an empty file
+     * @return loaded config
+     */
+    @NotNull
+    default LoadableConfig createLoadableConfig(
+            @NotNull String name,
+            @NotNull String directory,
+            @NotNull ConfigType type,
+            boolean forceLoadResource
+    ){
+        return createLoadableConfig(name,directory,type,forceLoadResource, false);
+    }
 
     /**
      * Reload all configs

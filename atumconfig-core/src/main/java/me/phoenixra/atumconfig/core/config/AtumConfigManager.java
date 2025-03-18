@@ -60,9 +60,11 @@ public class AtumConfigManager implements ConfigManager {
 
     @Override
     public @NotNull LoadableConfig createLoadableConfig(@NotNull String name, @NotNull String directory,
-                                                        @NotNull ConfigType type, boolean forceLoadResource
+                                                        @NotNull ConfigType type,
+                                                        boolean forceLoadResource,
+                                                        boolean checkUpdates
     ) {
-        return new LoadableAtumConfig(configOwner,type,directory,name,forceLoadResource);
+        return new LoadableAtumConfig(configOwner,type,directory,name,forceLoadResource,checkUpdates);
     }
 
     @Override

@@ -16,7 +16,9 @@ public class BaseConfig extends LoadableConfigWrapper {
             configName,
             "",
             configType,
-            forceLoadResource)
+            forceLoadResource,
+                false
+                )
         );
     }
 }

@@ -12,10 +12,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
 import me.phoenixra.atumconfig.api.tuples.PairRecord;
+
+@Getter
 public abstract class ConfigCategory {
-    @Getter
     private final ConfigOwner configOwner;
     private final ConfigType configType;
     private final String id;
@@ -46,20 +46,37 @@ public abstract class ConfigCategory {
     /**
      * Reload the config category
      */
-    public final void reload() {
+    public void reload() {
         beforeReload();
         clear();
-        File dir = new File(configOwner.getDataFolder(), directory);
+
+        File baseDir = new File(configOwner.getDataFolder(), this.directory);
+
         getConfigOwner().logInfo("Reloading " + id + " configs...");
         //@TODO add check for missing files
-        if (!dir.exists()) {
+        if (!baseDir.exists()) {
             loadDefaults();
         }
-        for (PairRecord<String, File> entry : FileUtils.loadFiles(dir, supportSubFolders)) {
+
+        for (PairRecord<String, File> entry : FileUtils.loadFiles(baseDir, supportSubFolders)) {
+            File file = entry.getSecond();
+            String relativeDirectory = this.directory;
+            File fileParent = file.getParentFile();
+
+            if (!fileParent.equals(baseDir)) {
+                String subPath = fileParent.getAbsolutePath()
+                        .substring(baseDir.getAbsolutePath().length());
+                if (subPath.startsWith(File.separator)) {
+                    subPath = subPath.substring(1);
+                }
+                relativeDirectory += File.separator + subPath;
+            }
+
             Config conf = getConfigOwner().getConfigManager().createLoadableConfig(
-                    entry.getSecond().getName().split("\\.")[0],
-                    directory,
+                    file.getName().split("\\.")[0],
+                    relativeDirectory,
                     configType,
+                    false,
                     false
             );
             acceptConfig(entry.getFirst(), conf);
@@ -67,7 +84,7 @@ public abstract class ConfigCategory {
         afterReload();
     }
 
-    private void loadDefaults() {
+    protected void loadDefaults() {
         for (String path : FileUtils.getAllPathsInResourceFolder(configOwner, directory)) {
             try {
                 File file = new File(configOwner.getDataFolder(), path);
@@ -80,7 +97,7 @@ public abstract class ConfigCategory {
                 if (stream == null) continue;
                 Files.copy(stream, Paths.get(file.toURI()), StandardCopyOption.REPLACE_EXISTING);
             } catch (Exception e) {
-                getConfigOwner().logError(null, e);
+                getConfigOwner().logError("Failed to load defaults for config category: "+id, e);
             }
         }
 
@@ -115,23 +132,5 @@ public abstract class ConfigCategory {
     public void afterReload() {
     }
 
-
-    /**
-     * Get the ID of a category
-     *
-     * @return The id
-     */
-    public final @NotNull String getId() {
-        return id;
-    }
-
-    /**
-     * Get the directory path
-     *
-     * @return The directory
-     */
-    public final @NotNull String getDirectory() {
-        return directory;
-    }
 
 }

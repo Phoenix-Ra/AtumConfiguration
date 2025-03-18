@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -297,26 +298,48 @@ public class FileUtils {
 
         try {
             URI uri = configOwner.getClass().getProtectionDomain().getCodeSource().getLocation().toURI();
-            FileSystem fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap());
-            Stream<Path> streamFiles = java.nio.file.Files.walk(fileSystem.getPath(dir));
-            files = streamFiles
-                    .filter(Objects::nonNull)
-                    .map(Path::toString)
-                    //to have dirs first
-                    .sorted((o1, o2) -> {
-                        if(o1.contains(".") && !o2.contains(".")){
-                            return 1;
-                        }
-                        if(!o1.contains(".") && o2.contains(".")){
-                            return -1;
-                        }
-                        return 0;
-                    })
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-            streamFiles.close();
-            fileSystem.close();
+            Path path;
+            // If the code is packaged in a jar, the URI scheme will be "jar"
+            if ("jar".equalsIgnoreCase(uri.getScheme())) {
+                try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
+                    path = fs.getPath(dir);
+                    try (Stream<Path> streamFiles = java.nio.file.Files.walk(path)) {
+                        files = streamFiles
+                                .filter(Objects::nonNull)
+                                .map(Path::toString)
+                                .sorted((o1, o2) -> {
+                                    if (o1.contains(".") && !o2.contains(".")) {
+                                        return 1;
+                                    }
+                                    if (!o1.contains(".") && o2.contains(".")) {
+                                        return -1;
+                                    }
+                                    return 0;
+                                })
+                                .collect(Collectors.toCollection(LinkedHashSet::new));
+                    }
+                }
+            } else {
+                // When running from a directory (non-jar), use the default file system.
+                path = Paths.get(uri).resolve(dir);
+                try (Stream<Path> streamFiles = java.nio.file.Files.walk(path)) {
+                    files = streamFiles
+                            .filter(Objects::nonNull)
+                            .map(Path::toString)
+                            .sorted((o1, o2) -> {
+                                if (o1.contains(".") && !o2.contains(".")) {
+                                    return 1;
+                                }
+                                if (!o1.contains(".") && o2.contains(".")) {
+                                    return -1;
+                                }
+                                return 0;
+                            })
+                            .collect(Collectors.toCollection(LinkedHashSet::new));
+                }
+            }
         } catch (Exception ex) {
-            configOwner.logWarning("An error occurred while trying to load files:\n " + Arrays.toString(ex.getStackTrace()));
+            configOwner.logError("An error occurred while trying to load file ",ex);
         }
 
         return files;

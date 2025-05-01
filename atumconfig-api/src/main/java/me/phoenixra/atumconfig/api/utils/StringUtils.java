@@ -1,8 +1,8 @@
 package me.phoenixra.atumconfig.api.utils;
 
 
-import me.phoenixra.atumconfig.api.ConfigOwner;
-import me.phoenixra.atumconfig.api.placeholders.PlaceholderManager;
+import me.phoenixra.atumconfig.api.ConfigManager;
+import me.phoenixra.atumconfig.api.placeholders.PlaceholderHandler;
 import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderContext;
 import me.phoenixra.atumconfig.api.tuples.PairRecord;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +17,9 @@ import java.util.stream.Collectors;
  */
 public class StringUtils {
 
-
+    private StringUtils() {
+        throw new UnsupportedOperationException("This is an utility class and cannot be instantiated");
+    }
 
 
     /**
@@ -55,11 +57,11 @@ public class StringUtils {
      * @return The formatted string.
      */
     @NotNull
-    public static String formatWithPlaceholders(@NotNull ConfigOwner configOwner,
+    public static String formatWithPlaceholders(@NotNull ConfigManager configOwner,
                                                 @NotNull String text,
                                                 @NotNull PlaceholderContext context) {
-        return PlaceholderManager.translatePlaceholders(configOwner,
-                text, context);
+        return configOwner.getPlaceholderHandler().orElse(PlaceholderHandler.EMPTY)
+                .translatePlaceholders(text, context);
     }
 
     /**
@@ -71,13 +73,13 @@ public class StringUtils {
      * @return The formatted list.
      */
     @NotNull
-    public static List<String> formatWithPlaceholders(@NotNull ConfigOwner configOwner,
+    public static List<String> formatWithPlaceholders(@NotNull ConfigManager configOwner,
                                                       @NotNull Collection<String> list,
                                                       @NotNull PlaceholderContext context) {
         List<String> out = new ArrayList<>();
-        for(String s : list){
-            out.add(PlaceholderManager.translatePlaceholders(configOwner,
-                    s,context));
+        for(String line : list){
+            out.add(configOwner.getPlaceholderHandler().orElse(PlaceholderHandler.EMPTY)
+                    .translatePlaceholders(line,context));
         }
         return out;
     }
@@ -170,53 +172,6 @@ public class StringUtils {
     }
 
     /**
-     * Parse string into tokens.
-     * <p>
-     * Handles quoted strings for names.
-     *
-     * @param lookup The lookup string.
-     * @return An array of tokens to be processed.
-     * @author Shawn (<a href="https://stackoverflow.com/questions/70606170/split-a-list-on-spaces-and-group-quoted-characters/70606653#70606653">...</a>)
-     */
-    @NotNull
-    public static String[] parseTokens(@NotNull final String lookup) {
-        char[] chars = lookup.toCharArray();
-        List<String> tokens = new ArrayList<>();
-        StringBuilder tokenBuilder = new StringBuilder();
-        for (int i = 0; i < chars.length; i++) {
-            if (chars[i] == ' ') {
-                /*
-                Take the current value of the argument builder, append it to the
-                list of found tokens, and then clear it for the next argument.
-                 */
-                tokens.add(tokenBuilder.toString());
-                tokenBuilder.setLength(0);
-            } else if (chars[i] == '"') {
-                /*
-                Work until the next unescaped quote to handle quotes with
-                spaces in them - assumes the input string is well-formatted
-                 */
-                for (i++; chars[i] != '"'; i++) {
-                    /*
-                    If the found quote is escaped, ignore it in the parsing
-                     */
-                    if (chars[i] == '\\') {
-                        i++;
-                    }
-                    tokenBuilder.append(chars[i]);
-                }
-            } else {
-                /*
-                If it's a regular character, just append it to the current argument.
-                 */
-                tokenBuilder.append(chars[i]);
-            }
-        }
-        tokens.add(tokenBuilder.toString()); // Adds the last argument to the tokens.
-        return tokens.toArray(new String[0]);
-    }
-
-    /**
      * Get a string's margin.
      *
      * @param input The input string.
@@ -249,8 +204,5 @@ public class StringUtils {
         }
     }
 
-    private StringUtils() {
 
-        throw new UnsupportedOperationException("This is an utility class and cannot be instantiated");
-    }
 }

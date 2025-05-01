@@ -1,17 +1,16 @@
 package me.phoenixra.atumconfig.api.config;
 
-import me.phoenixra.atumconfig.api.ConfigOwner;
-import me.phoenixra.atumconfig.api.placeholders.InjectablePlaceholderList;
+import me.phoenixra.atumconfig.api.ConfigManager;
+import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderList;
 import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderContext;
 import me.phoenixra.atumconfig.api.utils.StringUtils;
-import me.phoenixra.atumconfig.api.utils.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 
-public interface Config extends InjectablePlaceholderList {
+public interface Config extends PlaceholderList {
 
     /**
      * Convert the config into text
@@ -87,13 +86,37 @@ public interface Config extends InjectablePlaceholderList {
      * You can also set a {@link Config} object, so it will be a subsection
      * <br>
      * If you want to set it to config file as well,
-     * use {@link LoadableConfig#save()}
+     * use {@link ConfigFile#save()}
      *
      * @param path The path.
      * @param obj  The object.
      */
     void set(@NotNull String path,
              @Nullable Object obj);
+
+    /**
+     * Get the byte
+     *
+     * @param path The path.
+     * @param def  The default value.
+     * @return The byte or default value if not found.
+     */
+    default <T> T getParsedOrDefault(@NotNull String path,
+                                   Class<T> clazz,
+                                   T def) {
+        return Objects.requireNonNullElse(
+                getParsedOrNull(path,clazz), def
+        );
+    }
+
+    /**
+     * Get the byte
+     *
+     * @param path The path.
+     * @return The byte or null if not found.
+     */
+    @Nullable
+    <T> T getParsedOrNull(@NotNull String path, Class<T> clazz);
 
     /**
      * Get the byte
@@ -532,9 +555,9 @@ public interface Config extends InjectablePlaceholderList {
         if(text == null) return null;
         return StringUtils.formatWithPlaceholders(
                 getConfigOwner(),
-                getConfigOwner().supportMinecraft()?
+                getConfigOwner().supportsColorCodes()?
                         StringUtils.formatMinecraftColors(text) : text,
-                context != null ? context.withInjectableContext(this) :
+                context != null ? context.withContext(this) :
                         new PlaceholderContext(this)
         );
     }
@@ -621,16 +644,16 @@ public interface Config extends InjectablePlaceholderList {
         if(context == null){
             return StringUtils.formatWithPlaceholders(
                     getConfigOwner(),
-                    getConfigOwner().supportMinecraft()?
+                    getConfigOwner().supportsColorCodes()?
                             StringUtils.formatMinecraftColors(list) : list,
                     new PlaceholderContext(this)
             );
         }
         return StringUtils.formatWithPlaceholders(
                 getConfigOwner(),
-                getConfigOwner().supportMinecraft()?
+                getConfigOwner().supportsColorCodes()?
                         StringUtils.formatMinecraftColors(list) : list,
-                context.withInjectableContext(this)
+                context.withContext(this)
         );
     }
 
@@ -646,9 +669,9 @@ public interface Config extends InjectablePlaceholderList {
     default Config getSubsection(@NotNull String path){
         return Objects.requireNonNullElse(
                 getSubsectionOrNull(path),
-                getConfigOwner().getConfigManager().createConfig(
-                        null,
-                        getType()
+                getConfigOwner().createConfig(
+                        getType(),
+                        null
                 )
         );
     }
@@ -727,8 +750,6 @@ public interface Config extends InjectablePlaceholderList {
      *
      * @return The config owner instance.
      */
-    ConfigOwner getConfigOwner();
-
-
+    ConfigManager getConfigOwner();
 
 }

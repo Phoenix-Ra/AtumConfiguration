@@ -14,13 +14,8 @@ public enum ConfigType {
     /**
      * .yml file
      */
-    YAML("yml"),
+    YAML("yml");
 
-    /**
-     * .toml file
-     * <p>NOT IMPLEMENTED YET</p>
-     */
-    TOML("toml");
 
 
     @Getter
@@ -43,8 +38,6 @@ public enum ConfigType {
                 return ConfigType.YAML;
             case "json":
                 return ConfigType.JSON;
-            case "toml":
-                return ConfigType.TOML;
         }
         return ConfigType.YAML;
     }

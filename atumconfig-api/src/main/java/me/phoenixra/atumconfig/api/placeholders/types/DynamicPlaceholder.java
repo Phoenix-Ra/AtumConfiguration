@@ -1,8 +1,6 @@
 package me.phoenixra.atumconfig.api.placeholders.types;
 
-
-import me.phoenixra.atumconfig.api.ConfigOwner;
-import me.phoenixra.atumconfig.api.placeholders.RegistrablePlaceholder;
+import me.phoenixra.atumconfig.api.placeholders.Placeholder;
 import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-public class DynamicPlaceholder implements RegistrablePlaceholder {
+public class DynamicPlaceholder implements Placeholder {
     /**
      * The arguments pattern.
      */
@@ -21,38 +19,29 @@ public class DynamicPlaceholder implements RegistrablePlaceholder {
      */
     private final Function<@NotNull String, @Nullable String> function;
 
-    /**
-     * The config owner for the arguments.
-     */
-    private final ConfigOwner configOwner;
 
     /**
      * Create a new dynamic arguments.
      *
-     * @param configOwner The owner.
-     * @param pattern     The pattern.
-     * @param function    The function to retrieve the value.
+     * @param innerPattern     The pattern.
+     * @param function         The function to retrieve the value.
      */
-    public DynamicPlaceholder(@NotNull final ConfigOwner configOwner,
-                              @NotNull final Pattern pattern,
+    public DynamicPlaceholder(@NotNull final Pattern innerPattern,
                               @NotNull final Function<@NotNull String, @Nullable String> function) {
-        this.configOwner = configOwner;
-        this.pattern = Pattern.compile("%" + configOwner.getName()+"_"+pattern + "%");
+
+        this.pattern = Pattern.compile("%("+innerPattern.pattern() + ")%");
         this.function = function;
 
     }
 
     @Override
     @Nullable
-    public String getValue(@NotNull final String args,
+    public String getValue(@NotNull final String replacing,
                            @NotNull final PlaceholderContext context) {
-        return function.apply(args);
+        return function.apply(replacing);
     }
 
-    @Override
-    public @NotNull ConfigOwner getConfigOwner() {
-        return this.configOwner;
-    }
+
 
     @NotNull
     @Override
@@ -60,10 +49,6 @@ public class DynamicPlaceholder implements RegistrablePlaceholder {
         return this.pattern;
     }
 
-    @Override
-    public @NotNull DynamicPlaceholder register() {
-        return (DynamicPlaceholder) RegistrablePlaceholder.super.register();
-    }
 
     @Override
     public boolean equals(@Nullable final Object o) {
@@ -75,12 +60,11 @@ public class DynamicPlaceholder implements RegistrablePlaceholder {
             return false;
         }
         DynamicPlaceholder that = (DynamicPlaceholder) o;
-        return Objects.equals(this.getPattern(), that.getPattern())
-                && Objects.equals(this.getConfigOwner(), that.getConfigOwner());
+        return Objects.equals(this.getPattern(), that.getPattern());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getPattern(), this.getConfigOwner());
+        return Objects.hash(this.getPattern());
     }
 }

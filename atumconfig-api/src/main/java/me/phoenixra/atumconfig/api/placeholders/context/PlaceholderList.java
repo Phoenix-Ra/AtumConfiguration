@@ -1,8 +1,8 @@
-package me.phoenixra.atumconfig.api.placeholders;
+package me.phoenixra.atumconfig.api.placeholders.context;
 
 
-import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderContext;
-import me.phoenixra.atumconfig.api.placeholders.types.injectable.StaticPlaceholder;
+import me.phoenixra.atumconfig.api.placeholders.Placeholder;
+import me.phoenixra.atumconfig.api.placeholders.types.StaticPlaceholder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -14,31 +14,31 @@ import java.util.stream.Collectors;
  * An interface that represents a list of injectable placeholders
  * that is used in {@link PlaceholderContext}.
  */
-public interface InjectablePlaceholderList {
+public interface PlaceholderList {
 
     /**
      * Empty injectableContext object.
      *
      */
-    InjectablePlaceholderList EMPTY_INJECTABLE = new InjectablePlaceholderList() {
+    PlaceholderList EMPTY = new PlaceholderList() {
         @Override
-        public void addInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep) {
+        public void addPlaceholder(@NotNull Iterable<Placeholder> placeholders, boolean deep) {
             // Do nothing.
         }
 
         @Override
-        public void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep) {
+        public void removePlaceholder(@NotNull Iterable<Placeholder> placeholders, boolean deep) {
             // Do nothing.
         }
 
         @Override
-        public void clearInjectedPlaceholders( boolean deep) {
+        public void clearPlaceholders(boolean deep) {
             // Do nothing.
         }
 
         @Override
         public @NotNull
-        List<InjectablePlaceholder> getPlaceholderInjections() {
+        List<Placeholder> getPlaceholders() {
             return Collections.emptyList();
         }
     };
@@ -51,8 +51,8 @@ public interface InjectablePlaceholderList {
      *             placeholder for the parent and all its children (for example config and its subsections).
      * @param placeholders The placeholders.
      */
-    default void injectPlaceholders(boolean deep, @NotNull StaticPlaceholder... placeholders) {
-        this.addInjectablePlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()), deep);
+    default void addPlaceholders(boolean deep, @NotNull StaticPlaceholder... placeholders) {
+        this.addPlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()), deep);
     }
 
     /**
@@ -62,8 +62,8 @@ public interface InjectablePlaceholderList {
      *             placeholder for the parent and all its children (for example config and its subsections).
      * @param placeholders The placeholders.
      */
-    default void injectPlaceholders(boolean deep, @NotNull InjectablePlaceholder... placeholders) {
-        this.addInjectablePlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()),deep);
+    default void addPlaceholders(boolean deep, @NotNull Placeholder... placeholders) {
+        this.addPlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()),deep);
     }
 
     /**
@@ -73,8 +73,8 @@ public interface InjectablePlaceholderList {
      *             placeholders for the parent and all its children (for example config and its subsections).
      * @param placeholders The placeholders.
      */
-    default void removeInjectablePlaceholder(boolean deep, @NotNull InjectablePlaceholder... placeholders) {
-        this.removeInjectablePlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()),deep);
+    default void removePlaceholder(boolean deep, @NotNull Placeholder... placeholders) {
+        this.removePlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()),deep);
     }
 
 
@@ -87,7 +87,7 @@ public interface InjectablePlaceholderList {
      * @param deep use true if you want to inject
      *             placeholder for the parent and all its children (for example config and its subsections).
      */
-    void addInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep);
+    void addPlaceholder(@NotNull Iterable<Placeholder> placeholders, boolean deep);
 
     /**
      * Remove placeholders
@@ -95,14 +95,14 @@ public interface InjectablePlaceholderList {
      * @param deep use true if you want to remove
      *             placeholder for the parent and all its children (for example config and its subsections).
      */
-    void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep);
+    void removePlaceholder(@NotNull Iterable<Placeholder> placeholders, boolean deep);
 
     /**
      * Clear injected placeholders.
      * @param deep use true if you want to clear
      *             placeholders for the parent and all its children (for example config and its subsections).
      */
-    void clearInjectedPlaceholders(boolean deep);
+    void clearPlaceholders(boolean deep);
 
     /**
      * Get injected placeholders.
@@ -112,5 +112,5 @@ public interface InjectablePlaceholderList {
      * @return Injected placeholders.
      */
     @NotNull
-    List<InjectablePlaceholder> getPlaceholderInjections();
+    List<Placeholder> getPlaceholders();
 }

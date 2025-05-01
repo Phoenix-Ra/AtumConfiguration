@@ -1,17 +1,17 @@
-package me.phoenixra.atumconfig.api.placeholders.types.injectable;
+package me.phoenixra.atumconfig.api.placeholders.types;
 
-import me.phoenixra.atumconfig.api.placeholders.InjectablePlaceholder;
+import me.phoenixra.atumconfig.api.placeholders.Placeholder;
 import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderContext;
-import me.phoenixra.atumconfig.api.utils.Objects;
 import me.phoenixra.atumconfig.api.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-public final class StaticPlaceholder implements InjectablePlaceholder {
+public final class StaticPlaceholder implements Placeholder {
 
     private final String identifier;
 
@@ -31,7 +31,7 @@ public final class StaticPlaceholder implements InjectablePlaceholder {
     }
 
     @Override
-    public @Nullable String getValue(@NotNull final String args,
+    public @Nullable String getValue(@NotNull final String replacing,
                                      @NotNull final PlaceholderContext context) {
         return function.get();
     }

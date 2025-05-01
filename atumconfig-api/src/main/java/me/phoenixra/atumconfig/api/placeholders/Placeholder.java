@@ -1,6 +1,5 @@
 package me.phoenixra.atumconfig.api.placeholders;
 
-import me.phoenixra.atumconfig.api.ConfigOwner;
 import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,12 +11,12 @@ public interface Placeholder {
     /**
      * Get the value of the arguments.
      *
-     * @param args    The args.
+     * @param replacing    The replacing.
      * @param context The context.
      * @return The value.
      */
     @Nullable
-    String getValue(@NotNull String args,
+    String getValue(@NotNull String replacing,
                     @NotNull PlaceholderContext context);
 
     /**
@@ -40,11 +39,4 @@ public interface Placeholder {
         return text;
     }
 
-    /**
-     * Get the config owner that holds the arguments.
-     *
-     * @return The config owner.
-     */
-    @Nullable
-    ConfigOwner getConfigOwner();
 }

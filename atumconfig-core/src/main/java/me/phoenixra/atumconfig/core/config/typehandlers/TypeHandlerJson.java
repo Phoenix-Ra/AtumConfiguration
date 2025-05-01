@@ -1,7 +1,6 @@
 package me.phoenixra.atumconfig.core.config.typehandlers;
 
 import com.google.gson.*;
-import com.google.gson.stream.JsonReader;
 import lombok.Getter;
 import me.phoenixra.atumconfig.api.config.Config;
 import me.phoenixra.atumconfig.api.config.ConfigType;

@@ -1,78 +1,75 @@
-package me.phoenixra.atumconfig.api.placeholders;
+package me.phoenixra.atumconfig.core;
 
 
-import me.phoenixra.atumconfig.api.ConfigOwner;
+import lombok.Getter;
+import me.phoenixra.atumconfig.api.ConfigLogger;
+import me.phoenixra.atumconfig.api.placeholders.Placeholder;
+import me.phoenixra.atumconfig.api.placeholders.PlaceholderHandler;
 import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderContext;
 import me.phoenixra.atumconfig.api.tuples.PairRecord;
 import me.phoenixra.atumconfig.api.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PlaceholderManager {
+public class AtumPlaceholderHandler implements PlaceholderHandler {
 
-    /**
-     * All registered placeholders.
-     */
-    private static final HashMap<ConfigOwner,
-            Set<RegistrablePlaceholder>> REGISTERED_PLACEHOLDERS = new HashMap<>();
+    @Getter
+    private final ConfigLogger logger;
 
-    /**
-     * The default PlaceholderAPI pattern; brought in for compatibility.
-     */
-    private static final Pattern PATTERN = Pattern.compile("%([^% ]+)%");
 
+    private final Set<Placeholder> placeholders = new CopyOnWriteArraySet<>();
+
+    private static final ExecutorService EXECUTOR =
+            Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+    public AtumPlaceholderHandler(@NotNull ConfigLogger logger){
+        this.logger = logger;
+    }
 
     /**
      * Register an arguments.
      *
      * @param placeholder The arguments to register.
      */
-    public static void registerPlaceholder(@NotNull final RegistrablePlaceholder placeholder) {
-        if (!REGISTERED_PLACEHOLDERS.containsKey(placeholder.getConfigOwner())) {
-            REGISTERED_PLACEHOLDERS.put(placeholder.getConfigOwner(), new HashSet<>());
-        }
-        REGISTERED_PLACEHOLDERS.get(placeholder.getConfigOwner()).add(placeholder);
+    @Override
+    public void registerGlobalPlaceholder(@NotNull final Placeholder placeholder) {
+        placeholders.add(placeholder);
     }
 
     /**
      * Translate all placeholders without a placeholder context.
      *
-     * @param configOwner the config owner
      * @param text The text that may contain placeholders to translate.
      * @return The text, translated.
      */
     @NotNull
-    public static String translatePlaceholders(@NotNull ConfigOwner configOwner, @NotNull final String text) {
-        return translatePlaceholders(configOwner, text, PlaceholderContext.EMPTY);
+    @Override
+    public String translatePlaceholders(@NotNull final String text) {
+        return translatePlaceholders(text, PlaceholderContext.EMPTY);
 
     }
 
     /**
      * Translate all placeholders in a translation context.
      *
-     * @param configOwner The config owner that is translating the text.
      * @param text        The text that may contain placeholders to translate.
      * @param context     The translation context.
      * @return The text, translated.
      */
     @NotNull
-    public static String translatePlaceholders(@NotNull ConfigOwner configOwner,
-                                               @NotNull final String text,
-                                               @NotNull final PlaceholderContext context
-    ) {
-        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+    @Override
+    public String translatePlaceholders(@NotNull final String text,
+                                        @NotNull final PlaceholderContext context) {
+
         List<Future<PairRecord<String, String>>> futures = new ArrayList<>();
 
         for (String textToReplace : findPlaceholdersIn(text)) {
-            Future<PairRecord<String, String>> future = executor.submit(() -> {
-                for (InjectablePlaceholder placeholder : context.getInjectableContext().getPlaceholderInjections()) {
+            Future<PairRecord<String, String>> future = EXECUTOR.submit(() -> {
+                for (Placeholder placeholder : context.placeholderList().getPlaceholders()) {
                     if (textToReplace.matches(placeholder.getPattern().pattern())) {
                         String replacement = placeholder.getValue(textToReplace, context);
                         if (replacement == null) return new PairRecord<>("", "");
@@ -82,7 +79,7 @@ public class PlaceholderManager {
                         );
                     }
                 }
-                for (RegistrablePlaceholder placeholder : REGISTERED_PLACEHOLDERS.getOrDefault(configOwner, new HashSet<>())) {
+                for (Placeholder placeholder : placeholders) {
                     if (textToReplace.matches(placeholder.getPattern().pattern())) {
                         String replacement = placeholder.getValue(textToReplace, context);
                         if (replacement == null) return new PairRecord<>("", "");
@@ -100,21 +97,19 @@ public class PlaceholderManager {
         String translated = text;
         for (Future<PairRecord<String, String>> future : futures) {
             try {
-                PairRecord<String, String> out = future.get();
-                if (out.getFirst().isEmpty()) continue;
+                PairRecord<String, String> result = future.get();
+                if (result.getFirst().isEmpty()) continue;
                 translated = StringUtils.replaceFast(translated,
-                        out.getFirst(),
-                        out.getSecond()
+                        result.getFirst(),
+                        result.getSecond()
                 );
             } catch (InterruptedException | ExecutionException e) {
-                configOwner.logError(
-                        null, e
+                getLogger().logError(
+                        "Placeholders exception ", e
                 );
 
             }
         }
-
-        executor.shutdown();
 
         return translated;
     }
@@ -125,7 +120,8 @@ public class PlaceholderManager {
      * @param text The text.
      * @return The placeholders.
      */
-    public static List<String> findPlaceholdersIn(@NotNull final String text) {
+    @Override
+    public @NotNull List<String> findPlaceholdersIn(@NotNull final String text) {
         Set<String> found = new HashSet<>();
 
         Matcher matcher = PATTERN.matcher(text);
@@ -139,14 +135,11 @@ public class PlaceholderManager {
     /**
      * Get all registered placeholders for a config owner.
      *
-     * @param configOwner The config owner.
      * @return The placeholders.
      */
-    public static Set<RegistrablePlaceholder> getRegisteredPlaceholders(@NotNull final ConfigOwner configOwner) {
-        return REGISTERED_PLACEHOLDERS.get(configOwner);
+    @Override
+    public @NotNull Set<Placeholder> getGlobalPlaceholders() {
+        return placeholders;
     }
 
-    private PlaceholderManager() {
-        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
-    }
 }

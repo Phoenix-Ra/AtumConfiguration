@@ -1,12 +1,14 @@
 package me.phoenixra.atumconfig.core.config;
 
 import lombok.Getter;
-import me.phoenixra.atumconfig.api.ConfigOwner;
+import me.phoenixra.atumconfig.api.ConfigManager;
 import me.phoenixra.atumconfig.api.config.Config;
+import me.phoenixra.atumconfig.api.config.ConfigParser;
 import me.phoenixra.atumconfig.api.config.ConfigType;
-import me.phoenixra.atumconfig.api.placeholders.InjectablePlaceholder;
-import me.phoenixra.atumconfig.api.placeholders.PlaceholderManager;
+import me.phoenixra.atumconfig.api.placeholders.Placeholder;
+import me.phoenixra.atumconfig.api.placeholders.PlaceholderHandler;
 import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderContext;
+import me.phoenixra.atumconfig.core.AtumConfigManager;
 import me.phoenixra.atumconfig.core.config.typehandlers.ConfigTypeHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,21 +20,21 @@ import java.util.stream.Collectors;
 
 public class AtumConfig implements Config {
     @Getter
-    protected ConfigOwner configOwner;
+    protected ConfigManager configOwner;
     protected ConfigType configType;
 
-    protected List<InjectablePlaceholder> injections = Collections.synchronizedList(new ArrayList<>());
+    protected List<Placeholder> injections = Collections.synchronizedList(new ArrayList<>());
 
-    protected ConcurrentHashMap<String, Object> values = new ConcurrentHashMap<>();
+    protected Map<String, Object> values =  Collections.synchronizedMap(new LinkedHashMap<>());
 
-    public AtumConfig(ConfigOwner configOwner, ConfigType configType, Map<String, Object> values) {
+    public AtumConfig(ConfigManager configOwner, ConfigType configType, Map<String, Object> values) {
         this.configOwner = configOwner;
         this.configType = configType;
         if(values!=null) {
             this.values.putAll(values);
         }
     }
-    public AtumConfig(ConfigOwner configOwner, ConfigType configType) {
+    public AtumConfig(ConfigManager configOwner, ConfigType configType) {
         this(configOwner, configType, new ConcurrentHashMap<>());
     }
     @Override
@@ -101,7 +103,9 @@ public class AtumConfig implements Config {
         if(obj == null){
             values.remove(nearestPath);
         }else{
-            values.put(nearestPath, ConfigTypeHandler.constrainConfigTypes(configOwner,configType,obj));
+            values.put(nearestPath,
+                    ConfigTypeHandler.constrainConfigTypes(configOwner,configType,obj)
+            );
         }
     }
 
@@ -115,6 +119,17 @@ public class AtumConfig implements Config {
         return get(path) != null;
     }
 
+    @Override
+    public <T> @Nullable T getParsedOrNull(@NotNull String path,
+                                           Class<T> clazz) {
+        Optional<ConfigParser<T>> parser = getConfigOwner().getConfigParser(clazz);
+        if(parser.isEmpty()){
+            return null;
+        }
+        Config subsection = getSubsectionOrNull(path);
+        if(subsection == null) return null;
+        return parser.get().fromConfig(subsection);
+    }
 
     @Override
     public @Nullable Byte getByteOrNull(@NotNull String path) {
@@ -226,6 +241,9 @@ public class AtumConfig implements Config {
     @Override
     public @Nullable List<String> getStringListOrNull(@NotNull String path) {
         List<Object> list = getList(path, Object.class);
+        if(list == null){
+            return null;
+        }
         return list.stream().map(Object::toString).collect(Collectors.toList());
     }
 
@@ -258,41 +276,36 @@ public class AtumConfig implements Config {
             return 0.0;
         }
         return Crunch.compileExpression(
-                PlaceholderManager.translatePlaceholders(
-                        configOwner,
+                getConfigOwner().getPlaceholderHandler()
+                        .orElse(PlaceholderHandler.EMPTY)
+                        .translatePlaceholders(
                         text,
                         context
                 ),
-                ((AtumConfigManager)getConfigOwner().getConfigManager()).getEvaluationEnvironment()
+                ((AtumConfigManager)getConfigOwner()).getEvaluationEnvironment()
         ).evaluate();
     }
 
 
-    private<T> List<T> getList(String path, Class<T> type){
-
+    private <T> @Nullable List<T> getList(String path, Class<T> type) {
         Object obj = get(path);
-        if(!(obj instanceof Iterable)){
+        if (!(obj instanceof Iterable<?> iterable)) {
             return null;
         }
-        Iterator<?> iterator = ((Iterable<?>) obj).iterator();
 
-        if(iterator.hasNext()){
-            Object first = iterator.next();
-            if(first.getClass().isAssignableFrom(type)){
-                List<T> list = new ArrayList<>();
-                list.add((T) first);
-                while(iterator.hasNext()){
-                    list.add((T) iterator.next());
-                }
-                return list;
+        List<T> result = new ArrayList<>();
+        for (Object elem : iterable) {
+            if (!type.isInstance(elem)) {
+                return null;
             }
+            result.add(type.cast(elem));
         }
-        return new ArrayList<>();
+        return result;
     }
 
     @Override
-    public void addInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep) {
-        for (InjectablePlaceholder placeholder : placeholders) {
+    public void addPlaceholder(@NotNull Iterable<Placeholder> placeholders, boolean deep) {
+        for (Placeholder placeholder : placeholders) {
             if (placeholder == null) {
                 continue;
             }
@@ -305,15 +318,15 @@ public class AtumConfig implements Config {
         if(deep){
             for (Object object : values.values()) {
                 if (object instanceof Config) {
-                    ((Config) object).addInjectablePlaceholder(placeholders,true);
+                    ((Config) object).addPlaceholder(placeholders,true);
                 }
             }
         }
     }
 
     @Override
-    public void removeInjectablePlaceholder(@NotNull Iterable<InjectablePlaceholder> placeholders, boolean deep) {
-        for (InjectablePlaceholder placeholder : placeholders) {
+    public void removePlaceholder(@NotNull Iterable<Placeholder> placeholders, boolean deep) {
+        for (Placeholder placeholder : placeholders) {
             if (placeholder == null) {
                 continue;
             }
@@ -322,25 +335,25 @@ public class AtumConfig implements Config {
         if(deep){
             for (Object object : values.values()) {
                 if (object instanceof Config) {
-                    ((Config) object).removeInjectablePlaceholder(placeholders,true);
+                    ((Config) object).removePlaceholder(placeholders,true);
                 }
             }
         }
     }
 
     @Override
-    public void clearInjectedPlaceholders(boolean deep) {
+    public void clearPlaceholders(boolean deep) {
         injections.clear();
         if(deep) {
             for (Object object : values.values()) {
                 if (object instanceof Config) {
-                    ((Config) object).clearInjectedPlaceholders(true);
+                    ((Config) object).clearPlaceholders(true);
                 }
             }
         }
     }
     @Override
-    public @NotNull List<InjectablePlaceholder> getPlaceholderInjections() {
+    public @NotNull List<Placeholder> getPlaceholders() {
         return injections;
     }
 

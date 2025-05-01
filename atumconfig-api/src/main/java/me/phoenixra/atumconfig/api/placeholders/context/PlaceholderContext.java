@@ -2,42 +2,29 @@ package me.phoenixra.atumconfig.api.placeholders.context;
 
 
 
-import me.phoenixra.atumconfig.api.placeholders.InjectablePlaceholder;
-import me.phoenixra.atumconfig.api.placeholders.InjectablePlaceholderList;
-import me.phoenixra.atumconfig.api.utils.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-
+import java.util.Objects;
 
 
 /**
  * A class that contains the injectable placeholders.
+ *
+ * @param placeholderList The PlaceholderInjectable context.
  */
-public class PlaceholderContext {
-
-    /**
-     * The PlaceholderInjectable context.
-     */
-    @NotNull
-    private final InjectablePlaceholderList injectableContext;
-
-    /**
-     * Create an empty PlaceholderContext.
-     */
-    public PlaceholderContext() {
-        this(null);
-    }
+public record PlaceholderContext(@NotNull PlaceholderList placeholderList) {
+    public static final PlaceholderContext EMPTY = new PlaceholderContext(
+            null
+    );
 
     /**
      * Constructs a new PlaceholderContext with the given parameters.
      *
-     * @param injectableContext The PlaceholderInjectable parseContext.
+     * @param placeholderList The PlaceholderInjectable parseContext.
      */
-    public PlaceholderContext(@Nullable final InjectablePlaceholderList injectableContext) {
-        this.injectableContext = Objects.requireNonNullElse(injectableContext, InjectablePlaceholderList.EMPTY_INJECTABLE);
+    public PlaceholderContext(@Nullable final PlaceholderList placeholderList) {
+        this.placeholderList = Objects.requireNonNullElse(placeholderList, PlaceholderList.EMPTY);
     }
 
     /**
@@ -45,9 +32,10 @@ public class PlaceholderContext {
      *
      * @return The PlaceholderInjectable context.
      */
+    @Override
     @NotNull
-    public InjectablePlaceholderList getInjectableContext() {
-        return injectableContext;
+    public PlaceholderList placeholderList() {
+        return placeholderList;
     }
 
     /**
@@ -56,9 +44,9 @@ public class PlaceholderContext {
      * @param injectableContext The injectable context to add.
      * @return The new context.
      */
-    public PlaceholderContext withInjectableContext(@NotNull final InjectablePlaceholderList injectableContext) {
+    public PlaceholderContext withContext(@NotNull final PlaceholderList injectableContext) {
         return new PlaceholderContext(
-                new MergedInjectableContext(this.getInjectableContext(), injectableContext)
+                new PlaceholderListMerged(this.placeholderList(), injectableContext)
         );
     }
 
@@ -68,7 +56,7 @@ public class PlaceholderContext {
      * @param injectableContext The PlaceholderInjectable parseContext.
      * @return The context.
      */
-    public static PlaceholderContext of(@NotNull final InjectablePlaceholderList injectableContext) {
+    public static PlaceholderContext of(@NotNull final PlaceholderList injectableContext) {
         return new PlaceholderContext(
                 injectableContext
         );
@@ -77,7 +65,7 @@ public class PlaceholderContext {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getInjectableContext());
+        return Objects.hash(placeholderList());
     }
 
     @Override
@@ -86,22 +74,18 @@ public class PlaceholderContext {
             return true;
         }
 
-        if (!(o instanceof PlaceholderContext)) {
+        if (!(o instanceof PlaceholderContext that)) {
             return false;
         }
-        PlaceholderContext that = (PlaceholderContext) o;
-        return getInjectableContext().equals(that.getInjectableContext());
+        return placeholderList().equals(that.placeholderList());
     }
 
     @Override
     public String toString() {
         return "PlaceholderContext{" +
-                ", injectableContext=" + injectableContext +
+                ", injectableContext=" + placeholderList +
                 '}';
     }
 
 
-    public static final PlaceholderContext EMPTY = new PlaceholderContext(
-            null
-    );
 }

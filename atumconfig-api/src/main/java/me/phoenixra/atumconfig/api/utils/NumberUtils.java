@@ -26,6 +26,10 @@ public class NumberUtils {
         NUMERALS.put(1, "I");
     }
 
+    private NumberUtils() {
+        throw new UnsupportedOperationException("This is an utility class and cannot be instantiated");
+    }
+
     /**
      * Format double to string with 2 decimal places.
      *
@@ -162,4 +166,6 @@ public class NumberUtils {
         } catch (Exception e) {}
         return false;
     }
+
+
 }

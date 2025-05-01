@@ -1,11 +1,15 @@
 package me.phoenixra.atumconfig.api.config;
 
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 
-public interface LoadableConfig extends Config {
+public interface ConfigFile extends Config {
+
     /**
      * Create the file.
      *
@@ -29,10 +33,17 @@ public interface LoadableConfig extends Config {
     void save() throws IOException;
 
     /**
+     * Relative to root file path
+     * @return
+     */
+    @NotNull
+    Path getRelativeFilePath();
+    /**
      * Get the config file.
      *
      * @return The file.
      */
+    @NotNull
     File getFile();
 
     /**
@@ -40,6 +51,7 @@ public interface LoadableConfig extends Config {
      *
      * @return The file name.
      */
+    @NotNull
     default String getFileName(){
         return getFile().getName();
     }
@@ -49,7 +61,7 @@ public interface LoadableConfig extends Config {
      *
      * @return The name.
      */
-    default String getName(){
+    default @NotNull String getName(){
         return getFileName().replace("."+getType().getFileExtension(),"");
     }
 
@@ -58,5 +70,9 @@ public interface LoadableConfig extends Config {
      *
      * @return The file.
      */
+    @NotNull
     String getResourcePath();
+
+
+    @NotNull String getId();
 }

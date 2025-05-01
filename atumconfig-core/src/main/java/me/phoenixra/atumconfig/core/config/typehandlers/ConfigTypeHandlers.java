@@ -9,6 +9,6 @@ public class ConfigTypeHandlers {
     static {
         HANDLERS.put(ConfigType.JSON, new TypeHandlerJson());
         HANDLERS.put(ConfigType.YAML, new TypeHandlerYaml());
-        HANDLERS.put(ConfigType.TOML, new TypeHandlerToml());
+
     }
 }

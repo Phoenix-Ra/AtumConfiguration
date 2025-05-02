@@ -6,8 +6,7 @@ repositories {
      maven { url 'https://jitpack.io' }
 }
 dependencies { 
-    implementation 'com.github.Phoenix-Ra.AtumConfiguration:atumconfig-api:Tag'
-    implementation 'com.github.Phoenix-Ra.AtumConfiguration:atumconfig-core:Tag'
+    implementation("com.github.Phoenix-Ra:AtumConfiguration:Tag")
 }
 ```
 

@@ -12,81 +12,105 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.List;
+
 import java.util.Map;
 import java.util.Optional;
 
+
 /**
- * Manages configuration files and catalogs for an application.
- * Provides methods to create, load, reload, and retrieve configurations
+ * Central manager for creating, loading, and maintaining configuration files
+ * and catalogs for an application.
+ * <p>
+ * Provides methods to create standalone {@link Config} instances, load or
+ * create disk-backed {@link ConfigFile}s, and group multiple config files
+ * into {@link ConfigCatalog}s. Also handles registration of custom
+ * {@link ConfigParser}s and integration with a {@link PlaceholderHandler}.
  */
 public interface ConfigManager {
 
     /**
-     * Returns the unique identifier for this config manager.
+     * Gets the unique identifier for this config manager instance.
      *
-     * @return non-null unique identifier
+     * @return non-null string ID
      */
     @NotNull
     String getId();
 
     /**
-     * Returns the directory where configuration files are stored.
+     * Returns the root directory on disk where config files and catalogs are stored.
      *
-     * @return non-null path to the config directory
+     * @return non-null path to the configuration directory
      */
     @NotNull
     Path getDirectory();
 
     /**
      * Indicates whether this manager supports Minecraft-style color codes
-     * in text formatting.
+     * in formatted strings.
      *
-     * @return {@code true} if color codes are supported; {@code false} otherwise
+     * @return true if color codes are enabled; false otherwise
      */
     boolean supportsColorCodes();
 
-
     /**
-     * Reloads all managed configuration files, refreshing their contents
-     * from disk
+     * Reloads all {@link ConfigFile} and {@link ConfigCatalog} instances managed by this manager,
+     * reflecting any external changes on disk.
      */
     void reloadAll();
 
     /**
-     * Returns the logger used by this configuration manager.
+     * Returns the logger used for writing informational messages,
+     * warnings, and errors related to configuration operations.
      *
-     * @return non-null {@link ConfigLogger} instance
+     * @return non-null {@link ConfigLogger}
      */
     @NotNull
     ConfigLogger getLogger();
 
     /**
-     * Returns the placeholders handler used by this configuration manager.
+     * Retrieves the configured placeholder handler, if present.
      *
-     * @return an {@link Optional} containing the placeholder handler if found, otherwise empty
+     * @return an {@link Optional} containing the handler, or empty if none set
      */
     @NotNull
     Optional<PlaceholderHandler> getPlaceholderHandler();
 
+    /**
+     * Sets the placeholder handler to use for formatting strings
+     * that may contain placeholder tokens.
+     *
+     * @param placeholderHandler the handler to set, or null to disable
+     */
     void setPlaceholderHandler(@Nullable PlaceholderHandler placeholderHandler);
 
-
+    /**
+     * Retrieves a registered {@link ConfigParser} for the given domain
+     * class, if available.
+     *
+     * @param clazz the class parsed by the desired parser
+     * @param <T>   the type parsed
+     * @return an Optional containing the parser if registered
+     */
     @NotNull
     <T> Optional<ConfigParser<T>> getConfigParser(@NotNull Class<T> clazz);
 
+    /**
+     * Registers a {@link ConfigParser} for handling custom object serialization
+     * and deserialization.
+     *
+     * @param configParser the parser to register, must be non-null
+     */
     void addConfigParser(@NotNull ConfigParser<?> configParser);
 
-    /*=================== Config Creation ===================*/
+    // =================== Config Creation ===================
 
     /**
-     * Creates a standalone {@link Config} instance with the given data.
-     * This does not attach the config to any file.
+     * Creates an in-memory {@link Config} of the specified type,
+     * optionally pre-populated with the given key/value data.
      *
-     * @param type the type of configuration to create
-     * @param data an optional map of key-value pairs for initial content.
-     *            If NULL -> empty config is created
-     * @return a non-null {@link Config} instance
+     * @param type the format (e.g. JSON, YAML)
+     * @param data initial contents or null for empty
+     * @return a new Config instance
      */
     @NotNull
     Config createConfig(
@@ -95,12 +119,11 @@ public interface ConfigManager {
     );
 
     /**
-     * Creates a standalone {@link Config} by reading data from an input stream.
-     * This does not attach the config to any file.
+     * Creates an in-memory {@link Config} by reading from the provided input stream.
      *
-     * @param type the type of configuration to create
-     * @param in   the input stream to read the configuration from
-     * @return a non-null {@link Config} instance
+     * @param type the config format
+     * @param in   the input stream to parse
+     * @return a new Config instance
      */
     @NotNull
     Config createConfigFromStream(
@@ -109,12 +132,11 @@ public interface ConfigManager {
     );
 
     /**
-     * Creates a standalone {@link Config} from a raw string.
-     * This does not attach the config to any file
+     * Creates an in-memory {@link Config} by parsing the given raw string.
      *
-     * @param type the type of configuration to create
-     * @param raw  the raw string containing configuration data
-     * @return a non-null {@link Config} instance
+     * @param type the config format
+     * @param raw  the raw text to parse
+     * @return a new Config instance
      */
     @NotNull
     Config createConfigFromString(
@@ -122,24 +144,19 @@ public interface ConfigManager {
             @NotNull String raw
     );
 
-    /*=================== Config File Creation ===================*/
+    // =================== Config File Creation ===================
 
     /**
-     * Loads or creates a configuration file and registers it with this manager.
-     * <p>If the file exists in {@code getDirectory()}, loads it. Otherwise, creates from resources:</p>
-     * <ul>
-     *     <li>If {@code forceLoadResource} is {@code true}, throws
-     *         {@link IOException} when the resource is missing.</li>
-     *     <li>If {@code false}, creates an empty file or one populated from the
-     *         bundled resources.</li>
-     * </ul>
+     * Loads or creates a disk-backed {@link ConfigFile}, registering it
+     * under a unique ID. If the file does not exist and {@code forceLoadResource}
+     * is true, fails; otherwise creates an empty or populated from resource file.
      *
-     * @param type                      the type of configuration
-     * @param id                        the config identifier for manager storage
-     * @param relativePath              path to file relative to {@link #getDirectory()}
-     * @param forceLoadResource         if {@code true}, fail if bundled resource is missing
-     * @return a non-null {@link ConfigFile} instance
-     * @throws IOException if an I/O error occurs creating or loading the file
+     * @param type               the config format
+     * @param id                 unique identifier for later retrieval
+     * @param relativePath       path under {@link #getDirectory()}
+     * @param forceLoadResource  if true, require a bundled default resource
+     * @return the loaded or newly created ConfigFile
+     * @throws IOException on I/O or missing resource when forced
      */
     @NotNull
     ConfigFile createConfigFile(
@@ -150,37 +167,35 @@ public interface ConfigManager {
     ) throws IOException;
 
     /**
-     * Overload of {@link #createConfigFile(ConfigType, String, Path, boolean)}
-     * with {@code forceLoadResource} set to {@code false}.
-     *
-     * @param type           the type of configuration
-     * @param id             the config identifier for manager storage
-     * @param relativePath   relativePath to file relative to {@link #getDirectory()}
-     * @return a non-null {@link ConfigFile} instance
-     * @throws IOException if an I/O error occurs creating or loading the file
+     * Convenience overload of {@link #createConfigFile(ConfigType, String, Path, boolean)}
+     * with {@code forceLoadResource} set to false.
+     * @param type               the config format
+     * @param id                 unique identifier for later retrieval
+     * @param relativePath       path under {@link #getDirectory()}
+     * @return the loaded or newly created ConfigFile
+     * @throws IOException on I/O or missing resource when forced
      */
     @NotNull
     default ConfigFile createConfigFile(
             @NotNull ConfigType type,
             @NotNull String id,
             @NotNull Path relativePath
-    ) throws IOException{
+    ) throws IOException {
         return createConfigFile(type, id, relativePath, false);
     }
 
-
-    /*=================== Config Catalog Creation ===================*/
+    // =================== Config Catalog Creation ===================
 
     /**
-     * Creates a new {@link ConfigCatalog} with the provided parameters
-     * and registers it with this manager.
+     * Creates a {@link ConfigCatalog} for grouping multiple related files
+     * under a common directory. Listener methods fire during reload operations.
      *
-     * @param type                the type of configurations in this catalog
-     * @param id                  the unique identifier for the catalog
-     * @param relativeDirectory   path to catalog directory relative to {@link #getDirectory()}
-     * @param nested              whether nested directories are supported
-     * @param catalogListener     listener to catalog events
-     * @return a non-null {@link ConfigCatalog} instance
+     * @param type            the config format for all files in the catalog
+     * @param id              unique catalog identifier
+     * @param relativeDirectory the directory under {@link #getDirectory()}
+     * @param nested          whether to traverse subdirectories
+     * @param catalogListener listener for catalog events
+     * @return a new ConfigCatalog instance
      */
     @NotNull
     ConfigCatalog createCatalog(
@@ -192,14 +207,13 @@ public interface ConfigManager {
     );
 
     /**
-     * Overload of {@link #createCatalog(ConfigType, String, Path, boolean, ConfigCatalogListener)}
-     * with {@code nested} set to {@code false}.
-     *
-     * @param type                the type of configurations in this catalog
-     * @param id                  the unique identifier for the catalog
-     * @param relativeDirectory   path to catalog directory relative to {@link #getDirectory()}
-     * @param catalogListener     listener to catalog events
-     * @return a non-null {@link ConfigCatalog} instance
+     * Convenience overload of {@link #createCatalog(ConfigType,String,Path,boolean,ConfigCatalogListener)}
+     * with {@code nested} set to false.
+     * @param type            the config format for all files in the catalog
+     * @param id              unique catalog identifier
+     * @param relativeDirectory the directory under {@link #getDirectory()}
+     * @param catalogListener listener for catalog events
+     * @return a new ConfigCatalog instance
      */
     @NotNull
     default ConfigCatalog createCatalog(
@@ -211,62 +225,58 @@ public interface ConfigManager {
         return createCatalog(type, id, relativeDirectory, false, catalogListener);
     }
 
-    /*=================== Configs Management ===================*/
+    // =================== Configs Management ===================
 
     /**
-     * Registers a {@link ConfigFile} with this manager.
+     * Registers a {@link ConfigFile} instance
      *
-     * @param config the config file to add
-     * @return this manager instance
+     * @param config the config file to register
+     * @return this manager for fluent chaining
      */
     @NotNull
     ConfigManager addConfigFile(@NotNull ConfigFile config);
 
     /**
-     * Registers a {@link ConfigCatalog} with this manager.
+     * Registers a {@link ConfigCatalog} instance
      *
-     * @param catalog the config catalog to add
-     * @return this manager instance
+     * @param catalog the catalog to register
+     * @return this manager for fluent chaining
      */
     @NotNull
     ConfigManager addCatalog(@NotNull ConfigCatalog catalog);
 
     /**
-     * Retrieves a registered {@link ConfigCatalog} by its identifier.
+     * Looks up a previously registered catalog by its unique ID.
      *
-     * @param id the identifier of the catalog
-     * @return an {@link Optional} containing the catalog if found, otherwise empty
+     * @param id the catalog identifier
+     * @return an Optional containing the catalog if found
      */
     @NotNull
     Optional<ConfigCatalog> getCatalog(@NotNull String id);
 
     /**
-     * Retrieves a registered {@link ConfigFile} by its id.
+     * Looks up a previously registered file by its unique ID.
      *
-     * @param id the id.
-     * @return an {@link Optional} containing the config file if found, otherwise empty
+     * @param id the file identifier
+     * @return an Optional containing the file if found
      */
     @NotNull
     Optional<ConfigFile> getConfigFile(@NotNull String id);
 
-
     /**
-     * Retrieves all registered {@link ConfigFile}
+     * Returns a map of all registered config files, keyed by their IDs.
      *
-     * @return map
+     * @return non-null map of ID→ConfigFile
      */
     @NotNull
     Map<String, ConfigFile> getConfigFilesMap();
 
     /**
-     * Retrieves all registered {@link ConfigCatalog}
+     * Returns a map of all registered config catalogs, keyed by their IDs.
      *
-     * @return map
+     * @return non-null map of ID→ConfigCatalog
      */
     @NotNull
     Map<String, ConfigCatalog> getConfigCatalogsMap();
-
-
-
-
 }
+

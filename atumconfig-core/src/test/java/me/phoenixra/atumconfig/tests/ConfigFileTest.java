@@ -2,10 +2,12 @@ package me.phoenixra.atumconfig.tests;
 
 import me.phoenixra.atumconfig.api.ConfigManager;
 import me.phoenixra.atumconfig.api.config.ConfigFile;
-import me.phoenixra.atumconfig.api.config.ConfigType;
 
+
+import me.phoenixra.atumconfig.api.config.ConfigType;
 import me.phoenixra.atumconfig.core.AtumConfigManager;
 
+import me.phoenixra.atumconfig.tests.helpers.TestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -14,155 +16,224 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static me.phoenixra.atumconfig.tests.helpers.TestHelper.CONFIG_TYPE;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ConfigFileTest {
-    @TempDir
-    Path tmpRoot;
-    private ConfigManager configManager;
 
+/**
+ * As an experiment, I mostly generated these tests by AI
+ * It looks a little bit messy, but covers many cases.
+ */
+public class ConfigFileTest {
+    @TempDir Path tmpRoot;
+    private ConfigManager configManager;
 
     @BeforeEach
     void setUp() {
-        configManager = new AtumConfigManager("test",tmpRoot,true);
+        configManager = new AtumConfigManager("test", tmpRoot, true);
+    }
+
+    // Helper to write a simple single key=>value file
+    private static void writeSimpleKeyValue(Path file, String key, Object val) throws IOException {
+        String content;
+        switch (CONFIG_TYPE) {
+            case JSON -> content = "{\"" + key + "\":" + val + "}";
+            case YAML -> content = key + ": " + val + "\n";
+            default    -> throw new IllegalStateException("Unsupported type: " + CONFIG_TYPE);
+        }
+        Files.writeString(file, content);
+    }
+
+    // Helper to write a nested structure for testSaveWritesCurrentConfig
+    private static void writeComplexExample(Path file) throws IOException {
+        String content;
+        switch (CONFIG_TYPE) {
+            case JSON -> content = """
+                {
+                  "x": 123,
+                  "nested": { "y": "hello" }
+                }
+                """;
+            case YAML -> content = """
+                x: 123
+                nested:
+                  y: "hello"
+                """;
+            default    -> throw new IllegalStateException("Unsupported type: " + CONFIG_TYPE);
+        }
+        Files.writeString(file, content);
     }
 
     @Test
-    void testLoadExistingJson() throws IOException {
-        // write a JSON file with a single key/value
-        Path file = tmpRoot.resolve("test.json");
-        Files.writeString(file, "{\"foo\":42}");
+    void testLoadExistingFile() throws IOException {
+        Path file = tmpRoot.resolve("test" + TestHelper.FILE_EXT);
+        writeSimpleKeyValue(file, "foo", 42);
 
-        // load it
         ConfigFile cf = configManager.createConfigFile(
-                ConfigType.JSON, "test", Path.of("test.json"), false
+                CONFIG_TYPE,
+                "test",
+                Path.of("test" + TestHelper.FILE_EXT),
+                false
         );
 
-        // verify it read correctly
-        assertEquals(42, cf.getInt("foo"), "should read the integer value from disk");
+        assertEquals(42, cf.getInt("foo"),
+                "should read the integer value from disk");
     }
 
     @Test
-    void testCreateNewJsonWhenAbsent() throws IOException {
-        // no file on disk yet
-        Path file = tmpRoot.resolve("new.json");
+    void testCreateNewWhenAbsent() throws IOException {
+        Path file = tmpRoot.resolve("new" + TestHelper.FILE_EXT);
         assertFalse(Files.exists(file));
 
-        // creating with forceLoadResource=false should create an empty file
         ConfigFile cf = configManager.createConfigFile(
-                ConfigType.JSON, "new", Path.of("new.json")
+                CONFIG_TYPE,
+                "new",
+                Path.of("new" + TestHelper.FILE_EXT)
         );
 
-        // file now exists and has no keys
-        assertTrue(Files.exists(file), "new.json should have been created");
-        assertTrue(cf.getKeys(false).isEmpty(), "new config should start empty");
+        assertTrue(Files.exists(file), "file should have been created");
+        assertTrue(cf.getKeys(false).isEmpty(),
+                "new config should start empty");
     }
 
     @Test
     void testReloadReflectsExternalChanges() throws IOException {
-        // first create and write a key via API
+        // 1) create via API and save
         ConfigFile cf = configManager.createConfigFile(
-                ConfigType.JSON, "cycle", Path.of("cycle.json")
+                CONFIG_TYPE,
+                "cycle",
+                Path.of("cycle" + TestHelper.FILE_EXT)
         );
         cf.set("a", 1);
         cf.save();
 
-        // externally overwrite the file to a different value
-        Files.writeString(tmpRoot.resolve("cycle.json"), "{\"a\":2}");
+        // 2) overwrite *on disk* to a different value
+        writeSimpleKeyValue(tmpRoot.resolve("cycle" + TestHelper.FILE_EXT), "a", 2);
 
-        // reload() should pick up the new disk content
+        // 3) reload() should pick up that change
         cf.reload();
-        assertEquals(2, cf.getInt("a"), "reload should reflect external edits");
+        assertEquals(2, cf.getInt("a"),
+                "reload should reflect external edits");
     }
 
     @Test
     void testSaveWritesCurrentConfig() throws IOException {
-
         ConfigFile cf = configManager.createConfigFile(
-                ConfigType.JSON, "out", Path.of("out.json")
+                CONFIG_TYPE,
+                "out",
+                Path.of("out" + TestHelper.FILE_EXT)
         );
 
-
+        // set a top‐level and a nested value
         cf.set("x", 123);
         cf.set("nested.y", "hello");
         cf.save();
 
+        String raw = Files.readString(tmpRoot.resolve("out" + TestHelper.FILE_EXT));
 
-        String raw = Files.readString(tmpRoot.resolve("out.json"));
-        assertTrue(raw.contains("\"x\": 123"), "should serialize 'x'");
-        assertTrue(raw.contains("\"nested\""), "should include nested object");
-        assertTrue(raw.contains("\"y\": \"hello\""), "should serialize nested.y");
+        // now assert according to format
+        if (CONFIG_TYPE == ConfigType.JSON) {
+            assertTrue(raw.contains("\"x\": 123"),   "should serialize 'x' in JSON");
+            assertTrue(raw.contains("\"nested\""),   "should include nested object key");
+            assertTrue(raw.contains("\"y\": \"hello\""),
+                    "should serialize nested.y in JSON");
+        } else {
+            // YAML
+            assertTrue(raw.contains("x: 123"),       "should serialize 'x' in YAML");
+            assertTrue(raw.contains("nested:"),      "should include nested object key");
+            assertTrue(raw.contains("y: hello"),
+                    "should serialize nested.y in YAML");
+        }
     }
 
     @Test
     void testKeyRemovalPersists() throws IOException {
         ConfigFile cf = configManager.createConfigFile(
-                ConfigType.JSON, "rem", Path.of("rem.json")
+                CONFIG_TYPE,
+                "rem",
+                Path.of("rem" + TestHelper.FILE_EXT)
         );
         cf.set("foo", 123);
         cf.save();
-
 
         cf.set("foo", null);
         cf.save();
         cf.reload();
 
-        assertFalse(cf.hasPath("foo"), "setting to null should delete the key");
+        assertFalse(cf.hasPath("foo"),
+                "setting to null should delete the key");
     }
 
     @Test
     void testShallowDeepGetKeys() throws IOException {
         ConfigFile cf = configManager.createConfigFile(
-                ConfigType.JSON, "keys", Path.of("keys.json")
+                CONFIG_TYPE,
+                "keys",
+                Path.of("keys" + TestHelper.FILE_EXT)
         );
         cf.set("x.y.z", "v");
         cf.save();
         cf.reload();
 
-        assertTrue( cf.getKeys(false).contains("x"),      "shallow should see only 'x'");
+        assertTrue(cf.getKeys(false).contains("x"),
+                "shallow should see only 'x'");
         assertFalse(cf.getKeys(false).contains("x.y.z"));
-        assertTrue( cf.getKeys(true).contains("x.y.z"),   "deep should see nested key");
+        assertTrue(cf.getKeys(true).contains("x.y.z"),
+                "deep should see nested key");
     }
 
     @Test
     void testSubsectionLiveView() throws IOException {
         ConfigFile cf = configManager.createConfigFile(
-                ConfigType.JSON, "sub", Path.of("sub.json")
+                CONFIG_TYPE,
+                "sub",
+                Path.of("sub" + TestHelper.FILE_EXT)
         );
         cf.set("outer.inner", "orig");
         cf.save();
 
-
         var sub = cf.getSubsection("outer");
         assertEquals("orig", sub.getString("inner"));
+
         sub.set("newKey", "added");
         cf.save();
         cf.reload();
 
-        assertEquals("added", cf.getSubsection("outer").get("newKey"),
+        assertEquals("added",
+                cf.getSubsection("outer").getString("newKey"),
                 "mutating subsection should reflect in parent file");
     }
 
     @Test
     void testReloadAllAcrossFiles() throws IOException {
+        ConfigFile a = configManager.createConfigFile(
+                CONFIG_TYPE, "a", Path.of("a" + TestHelper.FILE_EXT)
+        );
+        a.set("val", 1);
+        a.save();
 
-        ConfigFile a = configManager.createConfigFile(ConfigType.JSON, "a", Path.of("a.json"));
-        a.set("val", 1); a.save();
-        ConfigFile b = configManager.createConfigFile(ConfigType.JSON, "b", Path.of("b.json"));
-        b.set("val", 2); b.save();
+        ConfigFile b = configManager.createConfigFile(
+                CONFIG_TYPE, "b", Path.of("b" + TestHelper.FILE_EXT)
+        );
+        b.set("val", 2);
+        b.save();
 
-
-        Files.writeString(tmpRoot.resolve("a.json"), "{\"val\":10}");
+        // externally change only "a"
+        writeSimpleKeyValue(tmpRoot.resolve("a" + TestHelper.FILE_EXT), "val", 10);
 
         configManager.reloadAll();
-        assertEquals(10, configManager.getConfigFile("a").get().getInt("val"));
-        assertEquals(2,  configManager.getConfigFile("b").get().getInt("val"),
+        assertEquals(10,
+                configManager.getConfigFile("a").get().getInt("val"));
+        assertEquals(2,
+                configManager.getConfigFile("b").get().getInt("val"),
                 "unmodified file should remain the same");
     }
 
     @Test
     void testManagerRegistryRetrieval() throws IOException {
-        configManager.createConfigFile(ConfigType.JSON, "one", Path.of("one.json"));
+        configManager.createConfigFile(
+                CONFIG_TYPE, "one", Path.of("one" + TestHelper.FILE_EXT)
+        );
         assertTrue(configManager.getConfigFile("one").isPresent());
         assertTrue(configManager.getConfigFilesMap().containsKey("one"));
     }
@@ -171,22 +242,30 @@ public class ConfigFileTest {
     void testForceResourceLoadFailure() {
         assertThrows(IOException.class, () ->
                 configManager.createConfigFile(
-                        ConfigType.JSON, "missing", Path.of("nope.json"), true
+                        CONFIG_TYPE,
+                        "missing",
+                        Path.of("nope" + TestHelper.FILE_EXT),
+                        true
                 )
         );
     }
 
     @Test
     void testResourceFallbackSuccess() throws IOException {
+        Path onDisk = tmpRoot.resolve("defaults" + TestHelper.FILE_EXT);
+        Files.deleteIfExists(onDisk);
 
-        Path resFile = tmpRoot.resolve("defaults.json");
-        if (Files.exists(resFile)) Files.delete(resFile);
-
-        // This assumes you have a bundled resource at src/test/resources/defaults.json
+        // assumes you bundled `src/test/resources/defaults` + same FILE_EXT
         ConfigFile cf = configManager.createConfigFile(
-                ConfigType.JSON, "def", Path.of("defaults.json"), false
+                CONFIG_TYPE,
+                "def",
+                Path.of("defaults" + TestHelper.FILE_EXT),
+                false
         );
-        assertTrue(Files.exists(resFile), "fallback should copy bundled defaults to disk");
-        assertFalse(cf.getKeys(false).isEmpty(), "loaded config should have at least one key");
+
+        assertTrue(Files.exists(onDisk),
+                "fallback should copy bundled defaults to disk");
+        assertFalse(cf.getKeys(false).isEmpty(),
+                "loaded config should have at least one key");
     }
 }

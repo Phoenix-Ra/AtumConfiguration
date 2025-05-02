@@ -6,21 +6,24 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.regex.Pattern;
 
+/**
+ * Placeholder
+ */
 public interface Placeholder {
 
     /**
-     * Get the value of the arguments.
+     * Get the value of the placeholder
      *
-     * @param replacing    The replacing.
-     * @param context The context.
-     * @return The value.
+     * @param replacing    Replacing text
+     * @param context      The context.
+     * @return The result
      */
     @Nullable
     String getValue(@NotNull String replacing,
                     @NotNull PlaceholderContext context);
 
     /**
-     * Get the pattern for the arguments.
+     * Get the pattern for the placeholder
      *
      * @return The pattern.
      */

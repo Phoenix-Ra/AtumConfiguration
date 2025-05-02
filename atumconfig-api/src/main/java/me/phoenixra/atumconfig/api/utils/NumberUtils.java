@@ -6,6 +6,9 @@ import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.TreeMap;
 
+/**
+ * Number Utils
+ */
 public class NumberUtils {
     private static final TreeMap<Integer, String> NUMERALS = new TreeMap<>();
     private static DecimalFormat doubleFormatter = new DecimalFormat("0.00");

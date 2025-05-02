@@ -2,10 +2,11 @@ package me.phoenixra.atumconfig.tests;
 
 import me.phoenixra.atumconfig.api.ConfigManager;
 import me.phoenixra.atumconfig.api.config.ConfigFile;
-import me.phoenixra.atumconfig.api.config.ConfigType;
 import me.phoenixra.atumconfig.api.config.catalog.ConfigCatalog;
 import me.phoenixra.atumconfig.api.config.catalog.ConfigCatalogListener;
 import me.phoenixra.atumconfig.core.AtumConfigManager;
+import me.phoenixra.atumconfig.tests.helpers.TestHelper;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -24,22 +25,22 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
+/**
+ * As an experiment, I mostly generated these tests by AI
+ * It looks a little bit messy, but covers many cases.
+ */
 class ConfigCatalogTest {
     @TempDir Path tmpRoot;
     private ConfigManager configManager;
 
-
     @BeforeEach
     void setUp() {
-        configManager = new AtumConfigManager("test",tmpRoot,true);
+        configManager = new AtumConfigManager("test", tmpRoot, true);
     }
 
-
-
-    //───────────────────────────────────────────────────────────────────────────
-    // 1) INITIAL LOAD SCENARIOS: disk vs. resource, flat vs. nested
-    //───────────────────────────────────────────────────────────────────────────
+    //───────────────────────────────────────────────────────────
+    // 1) INITIAL LOAD SCENARIOS
+    //───────────────────────────────────────────────────────────
 
     record Scenario(
             String name,
@@ -49,10 +50,7 @@ class ConfigCatalogTest {
             List<String> expectedIds,
             boolean expectLoadDefaults
     ) {
-        @Override
-        public String toString() {
-            return name;
-        }
+        @Override public String toString() { return name; }
     }
 
     static Stream<Arguments> initialLoadScenarios() {
@@ -74,16 +72,14 @@ class ConfigCatalogTest {
                 Arguments.of(new Scenario(
                         "Resource / Flat",
                         false, false,
-                        base -> {
-                            // no on-disk files; expect bundled at src/test/resources/catalog/*.json
-                        },
-                        Collections.emptyList(),  // ignored for resource
+                        base -> { /* nothing on disk; load from src/test/resources/catalog/* + FILE_EXT */ },
+                        Collections.emptyList(),
                         true
                 )),
                 Arguments.of(new Scenario(
                         "Resource / Nested",
                         true, false,
-                        base -> { /* no on-disk */ },
+                        base -> { /* nothing on disk */ },
                         Collections.emptyList(),
                         true
                 ))
@@ -97,45 +93,48 @@ class ConfigCatalogTest {
         if (sc.fromDisk) Files.createDirectories(base);
         sc.setupFs.accept(base);
 
-        List<String> accepted = new ArrayList<>();
-        AtomicBoolean loadedDefaults = new AtomicBoolean(false);
+        List<String> loaded = new ArrayList<>();
+        AtomicBoolean defaults = new AtomicBoolean(false);
 
         ConfigCatalog catalog = configManager.createCatalog(
-                ConfigType.JSON,
+                TestHelper.CONFIG_TYPE,
                 "cat",
                 Path.of("catalog"),
                 sc.nested,
                 new ConfigCatalogListener() {
-                    public void onClear() { accepted.clear(); loadedDefaults.set(false); }
-                    public void onConfigLoaded(ConfigFile cf) { accepted.add(cf.getId()); }
-                    public void onLoadDefaults() { loadedDefaults.set(true); }
+                    public void onClear()            { loaded.clear(); defaults.set(false); }
+                    public void onConfigLoaded(@NotNull ConfigFile cf) {
+                        loaded.add(cf.getId());
+                    }
+                    public void afterLoadDefaults()     { defaults.set(true); }
                 }
         );
 
         catalog.reload();
 
         if (sc.fromDisk) {
-            assertFalse(loadedDefaults.get(), sc.name + ": should not load defaults");
-            assertEquals(sc.expectedIds.size(), accepted.size(), sc.name);
-            assertTrue(accepted.containsAll(sc.expectedIds), sc.name);
-            // also verify catalog map
+            assertFalse(defaults.get(), sc.name + ": should _not_ load defaults");
+            assertEquals(sc.expectedIds.size(), loaded.size(), sc.name);
+            assertTrue(loaded.containsAll(sc.expectedIds), sc.name);
             assertEquals(sc.expectedIds.size(),
                     catalog.getConfigFilesMap().size(),
-                    sc.name + ": map size");
+                    sc.name + ": map size"
+            );
         } else {
-            assertTrue(loadedDefaults.get(), sc.name + ": should have loaded defaults");
-            assertFalse(accepted.isEmpty(),  sc.name + ": listener must fire");
-            assertEquals(accepted.size(),
+            assertTrue(defaults.get(), sc.name + ": should load defaults");
+            assertFalse(loaded.isEmpty(), sc.name + ": must fire listener");
+            assertEquals(loaded.size(),
                     catalog.getConfigFilesMap().size(),
-                    sc.name + ": map size");
+                    sc.name + ": map size"
+            );
         }
     }
 
     private static void setupDiskFlat(Path base) {
         try {
-            Files.createFile(base.resolve("good1.json"));
-            Files.createFile(base.resolve("good2.json"));
-            Files.createFile(base.resolve("fail1.yml"));
+            Files.createFile(base.resolve("good1" + TestHelper.FILE_EXT));
+            Files.createFile(base.resolve("good2" + TestHelper.FILE_EXT));
+            Files.createFile(base.resolve("fail1" + TestHelper.BAD_FILE_EXT));
             Files.createFile(base.resolve("fail2.toml"));
             Files.createFile(base.resolve("ignore.abracadabra"));
         } catch (IOException e) {
@@ -145,42 +144,40 @@ class ConfigCatalogTest {
 
     private static void setupDiskNested(Path base) {
         try {
-            // root
-            Files.createFile(base.resolve("good1.json"));
-            Files.createFile(base.resolve("good2.json"));
-            Files.createFile(base.resolve("fail1.yml"));
-            // nested
+            Files.createFile(base.resolve("good1" + TestHelper.FILE_EXT));
+            Files.createFile(base.resolve("good2" + TestHelper.FILE_EXT));
+            Files.createFile(base.resolve("fail1" + TestHelper.BAD_FILE_EXT));
             Path pups = base.resolve("pups");
             Files.createDirectories(pups);
-            Files.createFile(pups.resolve("good0.json"));
+            Files.createFile(pups.resolve("good0" + TestHelper.FILE_EXT));
             Files.createFile(pups.resolve("oops.txt"));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    //───────────────────────────────────────────────────────────────────────────
-    // 2) INCREMENTAL RELOAD: add & remove files
-    //───────────────────────────────────────────────────────────────────────────
+    //───────────────────────────────────────────────────────────
+    // 2) INCREMENTAL RELOAD
+    //───────────────────────────────────────────────────────────
 
     @Test
     void testIncrementalReload() throws IOException {
         Path base = tmpRoot.resolve("catalog");
         Files.createDirectories(base);
-        Files.createFile(base.resolve("a.json"));
-        Files.createFile(base.resolve("b.json"));
+        Files.createFile(base.resolve("a" + TestHelper.FILE_EXT));
+        Files.createFile(base.resolve("b" + TestHelper.FILE_EXT));
 
         List<String> loaded = new ArrayList<>();
         ConfigCatalog c = configManager.createCatalog(
-                ConfigType.JSON, "cat", Path.of("catalog"), false,
+                TestHelper.CONFIG_TYPE, "cat", Path.of("catalog"), false,
                 new SimpleListener(loaded, null)
         );
         c.reload();
-        assertTrue(loaded.containsAll(List.of("a","b")));
+        assertTrue(loaded.containsAll(List.of("a", "b")));
 
-        // now add c.json, remove b.json
-        Files.createFile(base.resolve("c.json"));
-        Files.delete(base.resolve("b.json"));
+        // add c, remove b
+        Files.createFile(base.resolve("c" + TestHelper.FILE_EXT));
+        Files.delete(base.resolve("b" + TestHelper.FILE_EXT));
 
         loaded.clear();
         c.reload();
@@ -190,68 +187,73 @@ class ConfigCatalogTest {
         assertEquals(2, loaded.size());
     }
 
-    //───────────────────────────────────────────────────────────────────────────
-    // 3) MODIFY‐ON‐DISK & reload reflects new contents
-    //───────────────────────────────────────────────────────────────────────────
+    //───────────────────────────────────────────────────────────
+    // 3) MODIFY-ON-DISK & reload
+    //───────────────────────────────────────────────────────────
 
     @Test
     void testModifyOnDiskReload() throws IOException {
         Path base = tmpRoot.resolve("catalog");
         Files.createDirectories(base);
-        Path f = base.resolve("m.json");
-        Files.writeString(f, "{\"x\":1}");
+        Path f = base.resolve("m" + TestHelper.FILE_EXT);
+
+        // write x=1 in the correct format
+        writeSimpleKeyValue(f, "x", 1);
 
         ConfigCatalog c = configManager.createCatalog(
-                ConfigType.JSON, "cat", Path.of("catalog"), false,
+                TestHelper.CONFIG_TYPE, "cat", Path.of("catalog"), false,
                 new SimpleListener(null, null)
         );
         c.reload();
         ConfigFile cf = c.getConfigFile("m").get();
         assertEquals(1, cf.getInt("x"));
 
-        // overwrite file on disk
-        Files.writeString(f, "{\"x\":99}");
+        // overwrite to x=99
+        writeSimpleKeyValue(f, "x", 99);
         cf.reload();
         assertEquals(99, cf.getInt("x"));
     }
 
-    //───────────────────────────────────────────────────────────────────────────
-    // 4) onClear() happens before onConfigLoaded()
-    //───────────────────────────────────────────────────────────────────────────
+    //───────────────────────────────────────────────────────────
+    // 4) Listener Ordering
+    //───────────────────────────────────────────────────────────
 
     @Test
     void testListenerOrdering() {
         List<String> events = new ArrayList<>();
         ConfigCatalog c = configManager.createCatalog(
-                ConfigType.JSON, "cat", Path.of("catalog"), false,
+                TestHelper.CONFIG_TYPE, "cat", Path.of("catalog"), false,
                 new ConfigCatalogListener() {
-                    public void onClear() { events.add("clear"); }
-                    public void onConfigLoaded(ConfigFile cf) { events.add("load:" + cf.getId()); }
-                    public void onLoadDefaults() { events.add("defaults"); }
+                    public void onClear()            { events.add("clear"); }
+                    public void onConfigLoaded(@NotNull ConfigFile cf) { events.add("load:" + cf.getId()); }
+                    public void afterLoadDefaults()     { events.add("defaults"); }
                 }
         );
 
-        // no files on disk → resource fallback
+        // no files → resource fallback
         c.reload();
         assertEquals("clear", events.get(0), "clear first");
-        // after clear, either defaults or load events
-        assertTrue(events.stream().skip(1).allMatch(e -> e.startsWith("defaults") || e.startsWith("load:")));
+        assertTrue(events.stream().skip(1)
+                .allMatch(e -> e.startsWith("defaults") || e.startsWith("load:")));
     }
 
-    //───────────────────────────────────────────────────────────────────────────
+    //───────────────────────────────────────────────────────────
     // 5) ERROR HANDLING: bad file formats
-    //───────────────────────────────────────────────────────────────────────────
+    //───────────────────────────────────────────────────────────
 
     @Test
     void testErrorHandlingBadFile() throws IOException {
         Path base = tmpRoot.resolve("catalog");
         Files.createDirectories(base);
-        Files.writeString(base.resolve("good.json"), "{\"ok\":true}");
-        Files.writeString(base.resolve("bad.json"), "{ not valid JSON }");
+
+        // good file
+        writeSimpleKeyValue(base.resolve("good" + TestHelper.FILE_EXT), "ok", 1);
+        // bad file
+        writeInvalidFile(base.resolve("bad" + TestHelper.FILE_EXT));
 
         List<String> loaded = new ArrayList<>();
         ConfigCatalog c = configManager.createCatalog(
-                ConfigType.JSON, "cat", Path.of("catalog"), false,
+                TestHelper.CONFIG_TYPE, "cat", Path.of("catalog"), false,
                 new SimpleListener(loaded, null)
         );
 
@@ -260,30 +262,29 @@ class ConfigCatalogTest {
         assertFalse(loaded.contains("bad"));
     }
 
-
-    //───────────────────────────────────────────────────────────────────────────
-    // 7) Concurrent Catalogs Isolation
-    //───────────────────────────────────────────────────────────────────────────
+    //───────────────────────────────────────────────────────────
+    // 7) CONCURRENT CATALOGS
+    //───────────────────────────────────────────────────────────
 
     @Test
     void testConcurrentCatalogsIsolation() throws IOException {
         Path aDir = tmpRoot.resolve("a");
         Files.createDirectories(aDir);
-        Files.createFile(aDir.resolve("one.json"));
+        Files.createFile(aDir.resolve("one" + TestHelper.FILE_EXT));
 
         Path bDir = tmpRoot.resolve("b");
         Files.createDirectories(bDir);
-        Files.createFile(bDir.resolve("two.json"));
+        Files.createFile(bDir.resolve("two" + TestHelper.FILE_EXT));
 
         List<String> la = new ArrayList<>();
         ConfigCatalog ca = configManager.createCatalog(
-                ConfigType.JSON, "A", Path.of("a"), false,
+                TestHelper.CONFIG_TYPE, "A", Path.of("a"), false,
                 new SimpleListener(la, null)
         );
 
         List<String> lb = new ArrayList<>();
         ConfigCatalog cb = configManager.createCatalog(
-                ConfigType.JSON, "B", Path.of("b"), false,
+                TestHelper.CONFIG_TYPE, "B", Path.of("b"), false,
                 new SimpleListener(lb, null)
         );
 
@@ -296,21 +297,24 @@ class ConfigCatalogTest {
         assertFalse(lb.contains("one"));
     }
 
-    //───────────────────────────────────────────────────────────────────────────
-    // 8) Performance Smoke Test (optional / @Disabled by default)
-    //───────────────────────────────────────────────────────────────────────────
+    //───────────────────────────────────────────────────────────
+    // 8) PERFORMANCE SMOKE TEST
+    //───────────────────────────────────────────────────────────
 
     @Test
     void testPerformanceLargeScale() throws IOException {
         Path base = tmpRoot.resolve("catalog");
         Files.createDirectories(base);
         for (int i = 0; i < 5_000; i++) {
-            Files.writeString(base.resolve("f" + i + ".json"), "{\"i\": " + i + "}");
+            writeSimpleKeyValue(
+                    base.resolve("f" + i + TestHelper.FILE_EXT),
+                    "i", i
+            );
         }
 
         AtomicBoolean fired = new AtomicBoolean(false);
         ConfigCatalog c = configManager.createCatalog(
-                ConfigType.JSON, "cat", Path.of("catalog"), false,
+                TestHelper.CONFIG_TYPE, "cat", Path.of("catalog"), false,
                 new SimpleListener(null, fired)
         );
 
@@ -318,31 +322,46 @@ class ConfigCatalogTest {
         c.reload();
         long elapsed = System.currentTimeMillis() - start;
 
-        assertTrue(elapsed < 2_000, "reload 5k files should be <2s");
-        assertTrue(fired.get(), "listener should have fired");
+        assertTrue(elapsed < 2_000, "reload 5k should be <2s");
+        assertTrue(fired.get(), "listener should fire");
         assertEquals(5_000, c.getConfigFilesMap().size());
     }
 
-    //───────────────────────────────────────────────────────────────────────────
-    //  Support: simple listener implementation
-    //───────────────────────────────────────────────────────────────────────────
+    //───────────────────────────────────────────────────────────
+    //  Helpers & Listener
+    //───────────────────────────────────────────────────────────
+
+    private static void writeSimpleKeyValue(Path f, String key, int val) throws IOException {
+        String content;
+        switch (TestHelper.CONFIG_TYPE) {
+            case JSON  -> content = "{\"" + key + "\":" + val + "}";
+            case YAML  -> content = key + ": " + val + "\n";
+            default     -> throw new IllegalStateException("unsupported: " + TestHelper.CONFIG_TYPE);
+        }
+        Files.writeString(f, content);
+    }
+
+    private static void writeInvalidFile(Path f) throws IOException {
+        String invalid;
+        switch (TestHelper.CONFIG_TYPE) {
+            case JSON  -> invalid = "{ not valid JSON }";
+            case YAML  -> invalid = "not valid: [unbalanced";
+            default     -> throw new IllegalStateException("unsupported: " + TestHelper.CONFIG_TYPE);
+        }
+        Files.writeString(f, invalid);
+    }
 
     private static class SimpleListener implements ConfigCatalogListener {
         private final List<String> out;
-        private final AtomicBoolean configAccepted;
-
-        SimpleListener(List<String> out, AtomicBoolean configAccepted) {
-            this.out = out;
-            this.configAccepted = configAccepted;
+        private final AtomicBoolean flag;
+        SimpleListener(List<String> out, AtomicBoolean flag) {
+            this.out = out; this.flag = flag;
         }
-
         @Override public void onClear() { if (out != null) out.clear(); }
-        @Override public void onConfigLoaded(ConfigFile cf) {
-            if (configAccepted != null) configAccepted.set(true);
-            if (out != null) out.add(cf.getId());
+        @Override public void onConfigLoaded(@NotNull ConfigFile cf) {
+            if (flag != null) flag.set(true);
+            if (out  != null) out.add(cf.getId());
         }
-        @Override public void onLoadDefaults() {
-
-        }
+        @Override public void afterLoadDefaults() { /* no-op */ }
     }
 }

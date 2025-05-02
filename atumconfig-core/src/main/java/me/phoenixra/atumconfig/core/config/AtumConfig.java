@@ -23,7 +23,7 @@ public class AtumConfig implements Config {
     protected ConfigManager configOwner;
     protected ConfigType configType;
 
-    protected List<Placeholder> injections = Collections.synchronizedList(new ArrayList<>());
+    protected List<Placeholder> injectedPlaceholders = Collections.synchronizedList(new ArrayList<>());
 
     protected Map<String, Object> values =  Collections.synchronizedMap(new LinkedHashMap<>());
 
@@ -31,16 +31,19 @@ public class AtumConfig implements Config {
         this.configOwner = configOwner;
         this.configType = configType;
         if(values!=null) {
-            this.values.putAll(values);
+            applyData(values);
         }
     }
     public AtumConfig(ConfigManager configOwner, ConfigType configType) {
         this(configOwner, configType, new ConcurrentHashMap<>());
     }
     @Override
-    public void applyData(Map<String, Object> values){
+    public void applyData(@NotNull Map<String, Object> values){
+        Objects.requireNonNull(values);
         this.values.clear();
-        this.values.putAll(values);
+        for(Map.Entry<String, Object> entry : values.entrySet()){
+            set(entry.getKey(), entry.getValue());
+        }
     }
 
     @Override
@@ -129,6 +132,23 @@ public class AtumConfig implements Config {
         Config subsection = getSubsectionOrNull(path);
         if(subsection == null) return null;
         return parser.get().fromConfig(subsection);
+    }
+
+    @Override
+    public @Nullable <T> List<T> getParsedListOrNull(@NotNull String path, Class<T> clazz) {
+        Optional<ConfigParser<T>> parserOptional = getConfigOwner().getConfigParser(clazz);
+        if(parserOptional.isEmpty()){
+            return null;
+        }
+        List<Config> list = getList(path, Config.class);
+        if(list == null){
+            return null;
+        }
+        ConfigParser<T> parser = parserOptional.get();
+        return list.stream()
+                .map(parser::fromConfig)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     @Override
@@ -255,18 +275,19 @@ public class AtumConfig implements Config {
 
     @Override
     public @Nullable List<? extends Config> getSubsectionListOrNull(@NotNull String path) {
-        Config section = getSubsectionOrNull(path);
-        if(section == null){
-            return null;
-        }
-        List<Config> list = new ArrayList<>();
-        for(String key : section.getKeys(false)){
-            Object obj = section.get(key);
-            if(obj instanceof Config){
-                list.add((Config) obj);
+        return getList(path, Config.class);
+    }
+
+    @Override
+    public @NotNull Map<String, Config> getAllSubsections() {
+        Map<String, Config> map = new LinkedHashMap<>();
+        for(String key : getKeys(false)){
+            Config obj = getSubsectionOrNull(key);
+            if(obj != null){
+                map.put(key, obj);
             }
         }
-        return list;
+        return map;
     }
 
     @Override
@@ -309,10 +330,10 @@ public class AtumConfig implements Config {
             if (placeholder == null) {
                 continue;
             }
-            if (injections.contains(placeholder)) {
+            if (injectedPlaceholders.contains(placeholder)) {
                 continue;
             }
-            injections.add(placeholder);
+            injectedPlaceholders.add(placeholder);
         }
 
         if(deep){
@@ -330,7 +351,7 @@ public class AtumConfig implements Config {
             if (placeholder == null) {
                 continue;
             }
-            injections.remove(placeholder);
+            injectedPlaceholders.remove(placeholder);
         }
         if(deep){
             for (Object object : values.values()) {
@@ -343,7 +364,7 @@ public class AtumConfig implements Config {
 
     @Override
     public void clearPlaceholders(boolean deep) {
-        injections.clear();
+        injectedPlaceholders.clear();
         if(deep) {
             for (Object object : values.values()) {
                 if (object instanceof Config) {
@@ -354,7 +375,7 @@ public class AtumConfig implements Config {
     }
     @Override
     public @NotNull List<Placeholder> getPlaceholders() {
-        return injections;
+        return injectedPlaceholders;
     }
 
     @Override

@@ -12,6 +12,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface ConfigLogger {
 
+    /**
+     * Config logger with no output
+     */
     ConfigLogger EMPTY = new ConfigLogger() {
         @Override
         public void logInfo(@NotNull String msg) {}
@@ -21,6 +24,9 @@ public interface ConfigLogger {
         public void logError(@NotNull String msg) {}
     };
 
+    /**
+     * Simple Config logger, that uses System.out.println
+     */
     ConfigLogger SIMPLE = new ConfigLogger() {
         @Override
         public void logInfo(@NotNull String msg) {System.out.println("INFO: "+msg);}

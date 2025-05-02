@@ -14,8 +14,12 @@ import java.util.Objects;
  * @param placeholderList The PlaceholderInjectable context.
  */
 public record PlaceholderContext(@NotNull PlaceholderList placeholderList) {
+
+    /**
+     * Empty Context, containing empty placeholder list
+     */
     public static final PlaceholderContext EMPTY = new PlaceholderContext(
-            null
+            PlaceholderList.EMPTY
     );
 
     /**
@@ -63,10 +67,6 @@ public record PlaceholderContext(@NotNull PlaceholderList placeholderList) {
     }
 
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(placeholderList());
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -78,6 +78,11 @@ public record PlaceholderContext(@NotNull PlaceholderList placeholderList) {
             return false;
         }
         return placeholderList().equals(that.placeholderList());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(placeholderList());
     }
 
     @Override

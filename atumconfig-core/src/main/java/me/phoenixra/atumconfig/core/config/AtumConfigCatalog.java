@@ -106,6 +106,7 @@ public class AtumConfigCatalog implements ConfigCatalog {
     }
 
     private void loadDefaults() {
+        listener.beforeLoadDefaults();
         Path root = configManager.getDirectory();
         for (String resourcePath : FileUtils.getAllPathsInResourceFolder(configManager, directory)) {
             Path target = root.resolve(resourcePath);
@@ -131,7 +132,7 @@ public class AtumConfigCatalog implements ConfigCatalog {
                 configManager.getLogger().logError("Error loading default for resource: " + resourcePath, e);
             }
         }
-        listener.onLoadDefaults();
+        listener.afterLoadDefaults();
     }
 
     @Override

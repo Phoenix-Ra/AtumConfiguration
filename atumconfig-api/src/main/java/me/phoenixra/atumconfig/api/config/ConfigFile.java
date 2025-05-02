@@ -7,72 +7,93 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
-
+/**
+ * Represents a configuration file that is both backed by disk storage and
+ * managed in-memory via the {@link Config}
+ * <p>
+ * Extends {@link Config} to provide file-specific operations
+ */
 public interface ConfigFile extends Config {
 
+
     /**
-     * Create the file.
+     * Creates the underlying file on disk if it does not already exist.
+     * <p>
+     * If {@code forceResourceLoad} is true and no bundled resource is found
+     * for this file, an exception will be thrown.
      *
-     * @param forceResourceLoad if true - throws NullPointerException
-     *                          when file not found inside the resources folder
+     * @param forceResourceLoad whether to require a bundled resource if the file is missing
      */
     void createFile(boolean forceResourceLoad);
 
     /**
-     * Reload the config.
+     * Reloads this configuration file from disk, refreshing all values
+     * in memory to match the current file contents.
      *
-     * @throws IOException If error has occurred while reloading
+     * @throws IOException if an error occurs reading the file
      */
     void reload() throws IOException;
 
     /**
-     * Save the config.
+     * Saves the in-memory configuration values back to disk, writing all
+     * current key/value pairs to the file in the appropriate format.
      *
-     * @throws IOException If error has occurred while saving
+     * @throws IOException if an error occurs writing the file
      */
     void save() throws IOException;
 
     /**
-     * Relative to root file path
-     * @return
+     * Returns the path to this file, relative to the configuration root
+     * directory managed by the {@link me.phoenixra.atumconfig.api.ConfigManager}.
+     *
+     * @return non-null relative file path
      */
     @NotNull
     Path getRelativeFilePath();
+
     /**
-     * Get the config file.
+     * Returns the absolute {@link File} object for this configuration file.
      *
-     * @return The file.
+     * @return non-null file instance
      */
     @NotNull
     File getFile();
 
     /**
-     * Get the full file name
+     * Returns the name of the file (including extension).
      *
-     * @return The file name.
+     * @return non-null file name string
      */
     @NotNull
-    default String getFileName(){
+    default String getFileName() {
         return getFile().getName();
     }
 
     /**
-     * Get the name of a config
+     * Returns the logical name of this configuration, derived from the
+     * file name without its extension.
      *
-     * @return The name.
+     * @return non-null config name (filename without extension)
      */
-    default @NotNull String getName(){
-        return getFileName().replace("."+getType().getFileExtension(),"");
+    default @NotNull String getName() {
+        return getFileName().replace("." + getType().getFileExtension(), "");
     }
 
     /**
-     * Get the path to a file inside the .jar
+     * Returns the resource path within the application JAR (or classpath)
+     * from which this file may be loaded as a default.
      *
-     * @return The file.
+     * @return non-null classpath resource path
      */
     @NotNull
     String getResourcePath();
 
-
-    @NotNull String getId();
+    /**
+     * Returns the unique identifier under which this file is registered
+     * in the {@link me.phoenixra.atumconfig.api.ConfigManager}.
+     *
+     * @return non-null config file ID
+     */
+    @NotNull
+    String getId();
 }

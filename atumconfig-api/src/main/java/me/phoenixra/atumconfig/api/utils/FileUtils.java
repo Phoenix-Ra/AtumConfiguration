@@ -10,6 +10,9 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Stream;
 
+/**
+ * FileUtils
+ */
 public class FileUtils {
     private FileUtils() {
         throw new UnsupportedOperationException("This is an utility class and cannot be instantiated");

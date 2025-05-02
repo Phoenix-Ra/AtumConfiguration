@@ -11,6 +11,12 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
+/**
+ * A placeholder that always returns a fixed value when its identifier is encountered.
+ * <p>
+ * The identifier is a literal string wrapped in percent signs (e.g. <code>%key%</code>).
+ * Upon translation, the identifier is replaced by the supplied value or {@code null} to replace with empty
+ */
 public final class StaticPlaceholder implements Placeholder {
 
     private final String identifier;
@@ -22,7 +28,12 @@ public final class StaticPlaceholder implements Placeholder {
     private final Supplier<@Nullable String> function;
 
 
-
+    /**
+     * Constructs a static placeholder with a fixed identifier and supplier.
+     *
+     * @param identifier the placeholder name (without percent signs)
+     * @param function   supplies the replacement text each time the placeholder is found or {@code null} to replace with empty
+     */
     public StaticPlaceholder(@NotNull final String identifier,
                              @NotNull final Supplier<@Nullable String> function) {
         this.identifier = "%" + identifier + "%";

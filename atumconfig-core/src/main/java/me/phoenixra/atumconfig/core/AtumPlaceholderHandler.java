@@ -12,40 +12,25 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class AtumPlaceholderHandler implements PlaceholderHandler {
+    private static final ExecutorService EXECUTOR =
+            Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
 
     @Getter
     private final ConfigLogger logger;
 
 
-    private final Set<Placeholder> placeholders = new CopyOnWriteArraySet<>();
+    @Getter
+    private final Set<Placeholder> globalPlaceholders = new CopyOnWriteArraySet<>();
 
-    private static final ExecutorService EXECUTOR =
-            Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     public AtumPlaceholderHandler(@NotNull ConfigLogger logger){
         this.logger = logger;
     }
 
-    /**
-     * Register an arguments.
-     *
-     * @param placeholder The arguments to register.
-     */
-    @Override
-    public void registerGlobalPlaceholder(@NotNull final Placeholder placeholder) {
-        placeholders.add(placeholder);
-    }
 
-    /**
-     * Translate all placeholders without a placeholder context.
-     *
-     * @param text The text that may contain placeholders to translate.
-     * @return The text, translated.
-     */
     @NotNull
     @Override
     public String translatePlaceholders(@NotNull final String text) {
@@ -53,13 +38,6 @@ public class AtumPlaceholderHandler implements PlaceholderHandler {
 
     }
 
-    /**
-     * Translate all placeholders in a translation context.
-     *
-     * @param text        The text that may contain placeholders to translate.
-     * @param context     The translation context.
-     * @return The text, translated.
-     */
     @NotNull
     @Override
     public String translatePlaceholders(@NotNull final String text,
@@ -67,7 +45,7 @@ public class AtumPlaceholderHandler implements PlaceholderHandler {
 
         List<Future<PairRecord<String, String>>> futures = new ArrayList<>();
 
-        for (String textToReplace : findPlaceholdersIn(text)) {
+        for (String textToReplace : PlaceholderHandler.findPlaceholdersIn(text)) {
             Future<PairRecord<String, String>> future = EXECUTOR.submit(() -> {
                 for (Placeholder placeholder : context.placeholderList().getPlaceholders()) {
                     if (textToReplace.matches(placeholder.getPattern().pattern())) {
@@ -79,7 +57,7 @@ public class AtumPlaceholderHandler implements PlaceholderHandler {
                         );
                     }
                 }
-                for (Placeholder placeholder : placeholders) {
+                for (Placeholder placeholder : globalPlaceholders) {
                     if (textToReplace.matches(placeholder.getPattern().pattern())) {
                         String replacement = placeholder.getValue(textToReplace, context);
                         if (replacement == null) return new PairRecord<>("", "");
@@ -98,10 +76,10 @@ public class AtumPlaceholderHandler implements PlaceholderHandler {
         for (Future<PairRecord<String, String>> future : futures) {
             try {
                 PairRecord<String, String> result = future.get();
-                if (result.getFirst().isEmpty()) continue;
+                if (result.first().isEmpty()) continue;
                 translated = StringUtils.replaceFast(translated,
-                        result.getFirst(),
-                        result.getSecond()
+                        result.first(),
+                        result.second()
                 );
             } catch (InterruptedException | ExecutionException e) {
                 getLogger().logError(
@@ -114,32 +92,16 @@ public class AtumPlaceholderHandler implements PlaceholderHandler {
         return translated;
     }
 
-    /**
-     * Find all placeholders in a given text.
-     *
-     * @param text The text.
-     * @return The placeholders.
-     */
+
+
     @Override
-    public @NotNull List<String> findPlaceholdersIn(@NotNull final String text) {
-        Set<String> found = new HashSet<>();
-
-        Matcher matcher = PATTERN.matcher(text);
-        while (matcher.find()) {
-            found.add(matcher.group());
-        }
-
-        return new ArrayList<>(found);
+    public void registerGlobalPlaceholder(@NotNull final Placeholder placeholder) {
+        globalPlaceholders.add(placeholder);
     }
 
-    /**
-     * Get all registered placeholders for a config owner.
-     *
-     * @return The placeholders.
-     */
     @Override
-    public @NotNull Set<Placeholder> getGlobalPlaceholders() {
-        return placeholders;
+    public void unregisterGlobalPlaceholder(@NotNull Placeholder placeholder) {
+        globalPlaceholders.remove(placeholder);
     }
 
 }

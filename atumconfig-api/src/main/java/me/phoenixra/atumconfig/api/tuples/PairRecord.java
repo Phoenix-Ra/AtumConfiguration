@@ -1,33 +1,14 @@
 package me.phoenixra.atumconfig.api.tuples;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Objects;
 
 /**
- * Two not null values.
+ * Two values
  *
- * @param <A> The first value type.
- * @param <B> The second value type.
+ * @param <A> The first value
+ * @param <B> The second value
  */
-@Setter
-@Getter
-@AllArgsConstructor
-public class PairRecord<A, B> {
-    /**
-     * The first item in the tuple.
-     */
-    @NotNull
-    private A first;
+public record PairRecord<A, B>(A first, B second) {
 
-    /**
-     * The second item in the tuple.
-     */
-    @NotNull
-    private B second;
 
     @Override
     public String toString() {

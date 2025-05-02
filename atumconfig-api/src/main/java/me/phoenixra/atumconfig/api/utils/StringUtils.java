@@ -29,7 +29,7 @@ public class StringUtils {
      * @return The formatted string.
      */
     @NotNull
-    public static String formatMinecraftColors(@NotNull String text) {
+    public static String formatColorCodes(@NotNull String text) {
         return replaceFast(text, "&", "§");
     }
 
@@ -40,10 +40,10 @@ public class StringUtils {
      * @return The formatted list.
      */
     @NotNull
-    public static Collection<String> formatMinecraftColors(@NotNull Collection<String> list) {
+    public static Collection<String> formatColorCodes(@NotNull Collection<String> list) {
         Collection<String> output= new ArrayList<>();
         for (String entry : list) {
-            output.add(formatMinecraftColors(entry));
+            output.add(formatColorCodes(entry));
         }
         return output;
     }
@@ -77,9 +77,11 @@ public class StringUtils {
                                                       @NotNull Collection<String> list,
                                                       @NotNull PlaceholderContext context) {
         List<String> out = new ArrayList<>();
+        PlaceholderHandler placeholderHandler = configOwner
+                .getPlaceholderHandler()
+                .orElse(PlaceholderHandler.EMPTY);
         for(String line : list){
-            out.add(configOwner.getPlaceholderHandler().orElse(PlaceholderHandler.EMPTY)
-                    .translatePlaceholders(line,context));
+            out.add(placeholderHandler.translatePlaceholders(line,context));
         }
         return out;
     }
@@ -116,7 +118,7 @@ public class StringUtils {
                                      @NotNull final List<PairRecord<String,String>> placeholder) {
         String out = input;
         for (PairRecord<String,String> pair : placeholder) {
-            out = replaceFast(out, pair.getFirst(), pair.getSecond());
+            out = replaceFast(out, pair.first(), pair.second());
         }
         return out;
     }
@@ -171,15 +173,6 @@ public class StringUtils {
         return result.toString();
     }
 
-    /**
-     * Get a string's margin.
-     *
-     * @param input The input string.
-     * @return The margin.
-     */
-    public static int getMargin(@NotNull final String input) {
-        return input.indexOf(input.trim());
-    }
 
     /**
      * Better implementation of {@link Object#toString()}.

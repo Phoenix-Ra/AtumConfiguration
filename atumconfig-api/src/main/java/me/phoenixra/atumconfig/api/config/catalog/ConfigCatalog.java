@@ -6,7 +6,6 @@ import me.phoenixra.atumconfig.api.config.ConfigType;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -85,7 +84,8 @@ public interface ConfigCatalog {
 
 
     /**
-     * Reloads all configuration files in this catalog from disk or resources.
+     * Cleans all currently loaded configs
+     * and loads new from disk or resources if not found on disk
      */
     void reload();
 }

@@ -8,23 +8,33 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+
+
+/**
+ * A placeholder that evaluates its value dynamically based on a regex match.
+ * <p>
+ * The placeholder is defined by a regex encapsulated in percent signs (e.g. <code>%key:123%</code>),
+ * where <code>innerPattern</code> defines what is allowed inside the percent signs.
+ *
+ * The provided function is invoked with the full matched token (including percent signs)
+ * and should return the replacement string or {@code null} to replace with empty
+ *
+ * @see #getPattern()
+ */
 public class DynamicPlaceholder implements Placeholder {
-    /**
-     * The arguments pattern.
-     */
+
     private final Pattern pattern;
 
-    /**
-     * The function to retrieve the output of the arguments.
-     */
+
     private final Function<@NotNull String, @Nullable String> function;
 
 
     /**
-     * Create a new dynamic arguments.
+     * Constructs a dynamic placeholder.
      *
-     * @param innerPattern     The pattern.
-     * @param function         The function to retrieve the value.
+     * @param innerPattern the regex describing the token contents (without percent signs)
+     * @param function     a function that receives the full matched token (including percent signs)
+     *                     and returns the replacement text, or {@code null} to replace with empty
      */
     public DynamicPlaceholder(@NotNull final Pattern innerPattern,
                               @NotNull final Function<@NotNull String, @Nullable String> function) {

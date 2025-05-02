@@ -9,6 +9,14 @@ dependencies {
     compileOnly 'com.google.code.gson:gson:2.10.1'
 }
 
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier.set('javadoc')
+    from javadoc.destinationDir
+}
+artifacts {
+    archives javadocJar
+}
+
 publishing {
     publications {
         jar(MavenPublication) {

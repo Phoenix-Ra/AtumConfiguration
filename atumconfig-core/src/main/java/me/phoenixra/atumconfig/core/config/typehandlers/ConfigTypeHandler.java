@@ -49,57 +49,44 @@ public abstract class ConfigTypeHandler {
         return sb.toString();
     }
     public static Object constrainConfigTypes(ConfigManager configOwner, @NotNull ConfigType type, Object input) {
-        var parser = configOwner.getConfigParser(input.getClass());
-        if(parser.isPresent()){
-            return parser.get()
-                    .toConfig(
-                            input,
-                            new AtumConfigSection(
-                                    configOwner,
-                                    type,
-                                    null
-                            )
-                    );
-        } else if(input instanceof Map){
-            return new AtumConfigSection(configOwner,type,normalizeToConfig(configOwner,type, (Map<?,?>) input));
-        }else if(input instanceof Iterable){
-            Iterator<?> iterator = ((Iterable<?>) input).iterator();
-            if(!iterator.hasNext()) return new ArrayList<>();
-            Object first = iterator.next();
-            if(first == null){
-                return new ArrayList<>();
-            }
-            else if(first instanceof Map){
-                Iterable<Map<Object,Object>> iterable = (Iterable<Map<Object,Object>>) input;
-                List<AtumConfigSection> building = new ArrayList<>();
-                for(Map<Object,Object> map : iterable){
-                    building.add(new AtumConfigSection(configOwner, type,normalizeToConfig(configOwner,type, map)));
-                }
-                return building;
-            }
-            else {
-                List<Object> building = new ArrayList<>();
-                for(Object obj : (Iterable<?>) input){
-                    building.add(obj);
-                }
-                return building;
-            }
+        if (input == null) {
+            return null;
         }
+
+        // 1) If there’s a parser for this exact input class, use it:
+        var parser = configOwner.getConfigParser(input.getClass());
+        if (parser.isPresent()) {
+            AtumConfigSection section = new AtumConfigSection(configOwner, type, null);
+            return parser.get().toConfig(input, section);
+        }
+
+        // 2) If it’s a raw Map, normalize its entries and wrap in a section:
+        if (input instanceof Map<?,?> rawMap) {
+            Map<String,Object> normalized = normalizeToConfig(configOwner, type, rawMap);
+            return new AtumConfigSection(configOwner, type, normalized);
+        }
+
+        // 3) If it’s any Iterable, process each element recursively:
+        if (input instanceof Iterable<?> iterable) {
+            List<Object> list = new ArrayList<>();
+            for (Object elem : iterable) {
+                list.add(constrainConfigTypes(configOwner, type, elem));
+            }
+            return list;
+        }
+
+        // 4) Otherwise, leave it alone (primitives, strings, etc.)
         return input;
     }
 
-    public static Map<String,Object> normalizeToConfig(ConfigManager configOwner, @NotNull ConfigType type, @NotNull Map<?,?> map) {
-        Map<String,Object> building = new HashMap<>();
-        for(Map.Entry<?,?> entry : map.entrySet()){
-            if(entry.getKey() == null || entry.getValue() == null){
-                continue;
-            }
+    public static Map<String,Object> normalizeToConfig(ConfigManager configOwner, @NotNull ConfigType type, @NotNull Map<?,?> raw) {
+        Map<String,Object> out = new LinkedHashMap<>();
+        for (Map.Entry<?,?> entry : raw.entrySet()) {
             String key = entry.getKey().toString();
-            Object value = entry.getValue();
-            value = constrainConfigTypes(configOwner,type, value);
-            building.put(key, value);
+            Object val = entry.getValue();
+            out.put(key, constrainConfigTypes(configOwner, type, val));
         }
-        return building;
+        return out;
     }
     public static String readToString(@NotNull Reader input) {
 

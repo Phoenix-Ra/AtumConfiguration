@@ -6,27 +6,29 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+/**
+ * Combines two {@link PlaceholderList} instances into a single merged context,
+ * preserving the base and additional placeholders while allowing extra, ad-hoc
+ * injections that can be added or removed independently.
+ * <p>
+ * Placeholders added or removed via this merged list are propagated to both
+ * the base and additional contexts when the {@code deep} flag is true.
+ * Otherwise, they are only recorded locally in this merged instance.
+ */
 public class PlaceholderListMerged implements PlaceholderList {
-    /**
-     * The base context.
-     */
+
     private final PlaceholderList baseContext;
 
-    /**
-     * The additional context.
-     */
+
     private final PlaceholderList additionalContext;
 
-    /**
-     * Extra injections.
-     */
     private final Set<Placeholder> extraInjections = new HashSet<>();
 
     /**
-     * Create a new merged injectable context.
+     * Constructs a merged placeholder list that overlays two existing contexts.
      *
-     * @param baseContext       The base context.
-     * @param additionalContext The additional context.
+     * @param baseContext        the base placeholder list (non-null)
+     * @param additionalContext  the additional placeholder list (non-null)
      */
     public PlaceholderListMerged(@NotNull final PlaceholderList baseContext,
                                  @NotNull final PlaceholderList additionalContext) {
@@ -58,9 +60,11 @@ public class PlaceholderListMerged implements PlaceholderList {
 
     @Override
     public void clearPlaceholders(boolean deep) {
-        baseContext.clearPlaceholders(deep);
-        additionalContext.clearPlaceholders(deep);
         extraInjections.clear();
+        if(deep) {
+            baseContext.clearPlaceholders(deep);
+            additionalContext.clearPlaceholders(deep);
+        }
     }
 
     @Override

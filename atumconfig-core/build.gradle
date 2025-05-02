@@ -20,8 +20,6 @@ publishing {
     publications {
         jar(MavenPublication) {
             from components.java
-            artifactId 'atumconfig-core'
-            artifact javadocJar
         }
     }
 }

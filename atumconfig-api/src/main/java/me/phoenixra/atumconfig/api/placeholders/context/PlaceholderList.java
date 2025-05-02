@@ -11,14 +11,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * An interface that represents a list of injectable placeholders
- * that is used in {@link PlaceholderContext}.
+ * Defines a mutable list of {@link Placeholder placeholders} that can be
+ * applied to text. Supports shallow vs. deep injection: when deep is true,
+ * placeholders propagate into nested contexts (e.g., subsections), otherwise
+ * they apply only at the current level.
  */
 public interface PlaceholderList {
 
     /**
-     * Empty injectableContext object.
-     *
+     * A no-op placeholder list with no placeholders. All mutation methods
+     * do nothing and {@link #getPlaceholders()} returns an empty list.
      */
     PlaceholderList EMPTY = new PlaceholderList() {
         @Override
@@ -44,72 +46,64 @@ public interface PlaceholderList {
     };
 
 
+
     /**
-     * Inject arguments.
+     * Convenience method to add one or more static placeholders.
      *
-     * @param deep use true if you want to inject
-     *             placeholder for the parent and all its children (for example config and its subsections).
-     * @param placeholders The placeholders.
+     * @param deep         if true, placeholders propagate to nested contexts
+     * @param placeholders the static placeholders to add
      */
     default void addPlaceholders(boolean deep, @NotNull StaticPlaceholder... placeholders) {
-        this.addPlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()), deep);
+        addPlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()), deep);
     }
 
     /**
-     * Inject arguments.
+     * Convenience method to add one or more placeholders.
      *
-     * @param deep use true if you want to inject
-     *             placeholder for the parent and all its children (for example config and its subsections).
-     * @param placeholders The placeholders.
+     * @param deep         if true, placeholders propagate to nested contexts
+     * @param placeholders the placeholders to add
      */
     default void addPlaceholders(boolean deep, @NotNull Placeholder... placeholders) {
-        this.addPlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()),deep);
+        addPlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()), deep);
     }
 
     /**
-     * Remove arguments.
+     * Convenience method to remove one or more placeholders.
      *
-     * @param deep use true if you want to remove
-     *             placeholders for the parent and all its children (for example config and its subsections).
-     * @param placeholders The placeholders.
+     * @param deep         if true, removal propagates to nested contexts
+     * @param placeholders the placeholders to remove
      */
     default void removePlaceholder(boolean deep, @NotNull Placeholder... placeholders) {
-        this.removePlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()),deep);
+        removePlaceholder(Arrays.stream(placeholders).collect(Collectors.toSet()), deep);
     }
 
-
     /**
-     * Inject placeholders.
-     * <p>
-     * If a placeholder already has the same pattern, it should be replaced.
+     * Adds placeholders to this list.
      *
-     * @param placeholders The placeholders.
-     * @param deep use true if you want to inject
-     *             placeholder for the parent and all its children (for example config and its subsections).
+     * @param placeholders an iterable of placeholders to add
+     * @param deep         if true, placeholders also apply deeply to nested contexts
      */
     void addPlaceholder(@NotNull Iterable<Placeholder> placeholders, boolean deep);
 
     /**
-     * Remove placeholders
-     * @param placeholders the placeholders to remove
-     * @param deep use true if you want to remove
-     *             placeholder for the parent and all its children (for example config and its subsections).
+     * Removes placeholders from this list.
+     *
+     * @param placeholders an iterable of placeholders to remove
+     * @param deep         if true, removal also applies deeply to nested contexts
      */
     void removePlaceholder(@NotNull Iterable<Placeholder> placeholders, boolean deep);
 
     /**
-     * Clear injected placeholders.
-     * @param deep use true if you want to clear
-     *             placeholders for the parent and all its children (for example config and its subsections).
+     * Clears all placeholders from this list.
+     *
+     * @param deep if true, clear also applies deeply to nested contexts
      */
     void clearPlaceholders(boolean deep);
 
     /**
-     * Get injected placeholders.
-     * <p>
-     * This method should always return an immutable list.
+     * Returns all currently registered placeholders in this list.
      *
-     * @return Injected placeholders.
+     * @return a non-null list of placeholders
      */
     @NotNull
     List<Placeholder> getPlaceholders();

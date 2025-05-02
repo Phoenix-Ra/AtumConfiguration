@@ -1,6 +1,6 @@
 package me.phoenixra.atumconfig.api.tuples;
+
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Objects;
@@ -55,6 +55,7 @@ public class TripletRecord<A,B,C> {
     public C third(){
         return third;
     }
+
     @Override
     public String toString() {
         return "TripletRecord{" +

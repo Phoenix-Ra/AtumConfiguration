@@ -2,19 +2,22 @@ package me.phoenixra.atumconfig.core.config;
 
 import lombok.Getter;
 import me.phoenixra.atumconfig.api.ConfigManager;
-import me.phoenixra.atumconfig.api.config.ConfigType;
 import me.phoenixra.atumconfig.api.config.ConfigFile;
+import me.phoenixra.atumconfig.api.config.ConfigType;
 import me.phoenixra.atumconfig.core.config.typehandlers.ConfigTypeHandler;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import org.jetbrains.annotations.NotNull;
 
 public class AtumConfigFile extends AtumConfig implements ConfigFile {
     @Getter
@@ -99,10 +102,10 @@ public class AtumConfigFile extends AtumConfig implements ConfigFile {
 
     @Override
     public String toPlaintext() {
-        StringBuilder sb = new StringBuilder();
-        for (String line : super.toPlaintext().split("\\r?\\n")) {
-            sb.append(line).append('\n');
-        }
-        return sb.toString();
+        String text = super.toPlaintext();
+        return Arrays.stream(text.split("\\r?\\n"))
+                .filter(line -> !line.trim().startsWith("#"))
+                .collect(Collectors.joining("\n"))
+                + "\n";
     }
 }

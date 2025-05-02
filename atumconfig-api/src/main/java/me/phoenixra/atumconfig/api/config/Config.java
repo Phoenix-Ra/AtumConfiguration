@@ -1,13 +1,13 @@
 package me.phoenixra.atumconfig.api.config;
 
 import me.phoenixra.atumconfig.api.ConfigManager;
-import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderList;
 import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderContext;
+import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderList;
+import me.phoenixra.atumconfig.api.utils.Objects;
 import me.phoenixra.atumconfig.api.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import me.phoenixra.atumconfig.api.utils.Objects;
 import java.util.*;
 
 /**

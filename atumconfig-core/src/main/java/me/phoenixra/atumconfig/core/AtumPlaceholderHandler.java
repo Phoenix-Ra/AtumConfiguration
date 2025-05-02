@@ -10,7 +10,9 @@ import me.phoenixra.atumconfig.api.tuples.PairRecord;
 import me.phoenixra.atumconfig.api.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.*;
 
 public class AtumPlaceholderHandler implements PlaceholderHandler {

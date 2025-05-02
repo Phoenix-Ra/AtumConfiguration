@@ -7,8 +7,6 @@ import me.phoenixra.atumconfig.api.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-
-
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 

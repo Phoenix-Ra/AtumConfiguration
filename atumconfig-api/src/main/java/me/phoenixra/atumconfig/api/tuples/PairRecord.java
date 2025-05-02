@@ -1,8 +1,7 @@
 package me.phoenixra.atumconfig.api.tuples;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 
+import lombok.AllArgsConstructor;
+import lombok.Setter;
 
 import java.util.Objects;
 
@@ -15,6 +14,7 @@ import java.util.Objects;
 @Setter
 @AllArgsConstructor
 public class PairRecord<A, B> {
+
     /**
      * The first item in the tuple.
      */

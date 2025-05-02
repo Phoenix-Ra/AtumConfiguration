@@ -2,8 +2,6 @@ package me.phoenixra.atumconfig.api.config.parsers;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * Example object for ConfigParser

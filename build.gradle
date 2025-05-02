@@ -100,13 +100,13 @@ allprojects {
         testImplementation platform('org.junit:junit-bom:5.10.0')
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testImplementation 'org.mockito:mockito-core:5.5.0'
-        testCompileOnly 'org.projectlombok:lombok:1.18.24'
+        testCompileOnly 'org.projectlombok:lombok:1.18.30'
         testCompileOnly 'org.jetbrains:annotations:23.0.0'
 
         //annotations
-        compileOnly("org.projectlombok:lombok:1.18.24")
+        compileOnly("org.projectlombok:lombok:1.18.30")
         compileOnly("org.jetbrains:annotations:23.0.0")
-        annotationProcessor("org.projectlombok:lombok:1.18.24")
+        annotationProcessor("org.projectlombok:lombok:1.18.30")
         annotationProcessor("org.jetbrains:annotations:23.0.0")
 
         compileOnly fileTree(dir: 'libs', include: ['*.jar'])

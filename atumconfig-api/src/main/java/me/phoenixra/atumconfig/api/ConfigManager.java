@@ -1,4 +1,5 @@
 package me.phoenixra.atumconfig.api;
+
 import me.phoenixra.atumconfig.api.config.Config;
 import me.phoenixra.atumconfig.api.config.ConfigFile;
 import me.phoenixra.atumconfig.api.config.ConfigParser;
@@ -12,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-
 import java.util.Map;
 import java.util.Optional;
 

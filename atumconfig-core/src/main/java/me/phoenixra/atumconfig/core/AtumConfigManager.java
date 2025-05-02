@@ -109,7 +109,7 @@ public class AtumConfigManager implements ConfigManager {
                                                 @NotNull Path relativePath,
                                                 boolean forceLoadResource
     ) throws IOException {
-        var config = new AtumConfigFile(this, type, id, relativePath, forceLoadResource);;
+        AtumConfigFile config = new AtumConfigFile(this, type, id, relativePath, forceLoadResource);;
         this.addConfigFile(config);
         return config;
     }
@@ -120,7 +120,7 @@ public class AtumConfigManager implements ConfigManager {
                                                 @NotNull Path relativeDirectory,
                                                 boolean nested,
                                                 @NotNull ConfigCatalogListener catalogListener) {
-        var catalog = new AtumConfigCatalog(this, type, id, relativeDirectory, nested, catalogListener);;
+        AtumConfigCatalog catalog = new AtumConfigCatalog(this, type, id, relativeDirectory, nested, catalogListener);;
         this.addCatalog(catalog);
         return catalog;
     }

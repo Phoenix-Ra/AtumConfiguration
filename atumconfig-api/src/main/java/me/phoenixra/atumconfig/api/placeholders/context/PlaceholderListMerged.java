@@ -87,9 +87,10 @@ public class PlaceholderListMerged implements PlaceholderList {
             return true;
         }
 
-        if (!(o instanceof PlaceholderListMerged that)) {
+        if (!(o instanceof PlaceholderListMerged)) {
             return false;
         }
+        PlaceholderListMerged that = (PlaceholderListMerged)o;
         return Objects.equals(baseContext, that.baseContext)
                 && Objects.equals(additionalContext, that.additionalContext)
                 && Objects.equals(extraInjections, that.extraInjections);

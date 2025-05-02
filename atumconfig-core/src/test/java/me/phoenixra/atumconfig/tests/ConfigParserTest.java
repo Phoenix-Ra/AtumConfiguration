@@ -14,8 +14,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,43 +40,62 @@ public class ConfigParserTest {
     private static boolean isJson() {
         return TestHelper.CONFIG_TYPE == ConfigType.JSON;
     }
-    // helper: write a flat id/test/value object
     private void writeTestObj(Path file, String id, boolean test, int value) throws IOException {
         String content;
         switch (TestHelper.CONFIG_TYPE) {
-            case JSON -> content = String.format(
-                    "{ \"id\": \"%s\", \"test\": %s, \"value\": %d }",
-                    id, test, value
-            );
-            case YAML -> content = String.format(
-                    "id: %s%n" +
-                            "test: %s%n" +
-                            "value: %d%n",
-                    id, test, value
-            );
-            default -> throw new IllegalStateException("Unsupported: " + TestHelper.CONFIG_TYPE);
+            case JSON:
+                content = String.format(
+                        "{ \"id\": \"%s\", \"test\": %s, \"value\": %d }",
+                        id, test, value
+                );
+                break;
+            case YAML:
+                content = String.format(
+                        "id: %s%n" +
+                                "test: %s%n" +
+                                "value: %d%n",
+                        id, test, value
+                );
+                break;
+            default:
+                throw new IllegalStateException("Unsupported: " + TestHelper.CONFIG_TYPE);
         }
-        Files.writeString(file, content);
+        Files.write(
+                file,
+                content.getBytes(StandardCharsets.UTF_8),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+        );
     }
 
     // helper: write a nested under 'outer'
     private void writeNestedTestObj(Path file, String id, boolean test, int value) throws IOException {
         String content;
         switch (TestHelper.CONFIG_TYPE) {
-            case JSON -> content = String.format(
-                    "{ \"outer\": { \"id\": \"%s\", \"test\": %s, \"value\": %d } }",
-                    id, test, value
-            );
-            case YAML -> content = String.format(
-                    "outer:%n" +
-                            "  id: %s%n" +
-                            "  test: %s%n" +
-                            "  value: %d%n",
-                    id, test, value
-            );
-            default -> throw new IllegalStateException("Unsupported: " + TestHelper.CONFIG_TYPE);
+            case JSON:
+                content = String.format(
+                        "{ \"outer\": { \"id\": \"%s\", \"test\": %s, \"value\": %d } }",
+                        id, test, value
+                );
+                break;
+            case YAML:
+                content = String.format(
+                        "outer:%n" +
+                                "  id: %s%n" +
+                                "  test: %s%n" +
+                                "  value: %d%n",
+                        id, test, value
+                );
+                break;
+            default:
+                throw new IllegalStateException("Unsupported: " + TestHelper.CONFIG_TYPE);
         }
-        Files.writeString(file, content);
+        Files.write(
+                file,
+                content.getBytes(StandardCharsets.UTF_8),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+        );
     }
 
     @Test
@@ -84,18 +106,19 @@ public class ConfigParserTest {
         ConfigFile file = manager.createConfigFile(
                 TestHelper.CONFIG_TYPE,
                 "example",
-                Path.of("example" + TestHelper.FILE_EXT),
+                Paths.get("example" + TestHelper.FILE_EXT),
                 false
         );
 
         ExampleParseObj parsed = manager
-                .getConfigParser(ExampleParseObj.class).orElseThrow()
+                .getConfigParser(ExampleParseObj.class)
+                .orElseThrow(RuntimeException::new)
                 .fromConfig(file);
 
         assertNotNull(parsed, "parser should not return null");
-        assertEquals("foo", parsed.id());
-        assertTrue(parsed.test());
-        assertEquals(42, parsed.value());
+        assertEquals("foo", parsed.getId());
+        assertTrue(parsed.isTest());
+        assertEquals(42, parsed.getValue());
     }
 
     @Test
@@ -106,27 +129,31 @@ public class ConfigParserTest {
         ConfigFile file = manager.createConfigFile(
                 TestHelper.CONFIG_TYPE,
                 "example",
-                Path.of("example" + TestHelper.FILE_EXT)
+                Paths.get("example" + TestHelper.FILE_EXT)
         );
 
         // write via parser + save + reload
         ExampleParseObj toWrite = new ExampleParseObj("bar", false, 7);
-        manager.getConfigParser(ExampleParseObj.class).orElseThrow()
+        manager.getConfigParser(ExampleParseObj.class).orElseThrow(RuntimeException::new)
                 .toConfig(toWrite, file);
         file.save();
         file.reload();
 
         ExampleParseObj parsed = manager
-                .getConfigParser(ExampleParseObj.class).orElseThrow()
+                .getConfigParser(ExampleParseObj.class).orElseThrow(RuntimeException::new)
                 .fromConfig(file);
 
         assertNotNull(parsed, "parser should not return null after reload");
-        assertEquals("bar", parsed.id());
-        assertFalse(parsed.test());
-        assertEquals(7, parsed.value());
+        assertEquals("bar", parsed.getId());
+        assertFalse(parsed.isTest());
+        assertEquals(7, parsed.getValue());
 
         // raw‐file assertions differ by format:
-        String raw = Files.readString(f);
+        Path outFile = tmpRoot.resolve(f);
+        String raw = new String(
+                Files.readAllBytes(outFile),
+                StandardCharsets.UTF_8
+        );
         if (TestHelper.CONFIG_TYPE == ConfigType.JSON) {
             assertTrue(raw.contains("\"id\": \"bar\""));
             assertTrue(raw.contains("\"test\": false"));
@@ -144,7 +171,7 @@ public class ConfigParserTest {
         Path f = tmpRoot.resolve("cfg" + TestHelper.FILE_EXT);
         Files.createFile(f);
         ConfigFile cfg = manager.createConfigFile(
-                TestHelper.CONFIG_TYPE, "cfg", Path.of("cfg" + TestHelper.FILE_EXT)
+                TestHelper.CONFIG_TYPE, "cfg", Paths.get("cfg" + TestHelper.FILE_EXT)
         );
         assertNull(cfg.getParsedOrNull("doesntExist", ExampleParseObj.class));
     }
@@ -154,7 +181,7 @@ public class ConfigParserTest {
         Path f = tmpRoot.resolve("cfg" + TestHelper.FILE_EXT);
         Files.createFile(f);
         ConfigFile cfg = manager.createConfigFile(
-                TestHelper.CONFIG_TYPE, "cfg", Path.of("cfg" + TestHelper.FILE_EXT)
+                TestHelper.CONFIG_TYPE, "cfg", Paths.get("cfg" + TestHelper.FILE_EXT)
         );
 
         ExampleParseObj fallback = new ExampleParseObj("fallback", true, 99);
@@ -170,15 +197,15 @@ public class ConfigParserTest {
         writeNestedTestObj(f, "nestedId", false, 123);
 
         ConfigFile cfg = manager.createConfigFile(
-                TestHelper.CONFIG_TYPE, "nested", Path.of("nested" + TestHelper.FILE_EXT), false
+                TestHelper.CONFIG_TYPE, "nested", Paths.get("nested" + TestHelper.FILE_EXT), false
         );
 
         ExampleParseObj parsed = cfg.getParsedOrNull("outer", ExampleParseObj.class);
         assertNotNull(parsed,
                 "parser should return a non-null for existing nested section");
-        assertEquals("nestedId", parsed.id());
-        assertFalse(parsed.test());
-        assertEquals(123, parsed.value());
+        assertEquals("nestedId", parsed.getId());
+        assertFalse(parsed.isTest());
+        assertEquals(123, parsed.getValue());
     }
 
     @Test
@@ -187,7 +214,7 @@ public class ConfigParserTest {
         writeNestedTestObj(f, "keepMe", true, 7);
 
         ConfigFile cfg = manager.createConfigFile(
-                TestHelper.CONFIG_TYPE, "keep", Path.of("keep" + TestHelper.FILE_EXT)
+                TestHelper.CONFIG_TYPE, "keep", Paths.get("keep" + TestHelper.FILE_EXT)
         );
 
         ExampleParseObj fallback = new ExampleParseObj("fallback", false, -1);
@@ -238,7 +265,6 @@ public class ConfigParserTest {
                 "    value: 2\n";
         Config cfg = manager.createConfigFromString(TestHelper.CONFIG_TYPE, raw);
 
-        @SuppressWarnings("unchecked")
         List<ExampleParseObj> list = cfg.getParsedListOrNull("items", ExampleParseObj.class);
         assertNotNull(list);
         assertEquals(2, list.size());

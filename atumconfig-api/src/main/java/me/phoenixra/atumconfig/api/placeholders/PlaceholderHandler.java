@@ -4,10 +4,7 @@ import me.phoenixra.atumconfig.api.ConfigLogger;
 import me.phoenixra.atumconfig.api.placeholders.context.PlaceholderContext;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,7 +31,7 @@ public interface PlaceholderHandler {
     PlaceholderHandler EMPTY = new PlaceholderHandler() {
         @Override public void unregisterGlobalPlaceholder(@NotNull Placeholder placeholder) {}
         @Override public void registerGlobalPlaceholder(@NotNull Placeholder placeholder) {}
-        @Override public @NotNull Set<Placeholder> getGlobalPlaceholders() { return Set.of(); }
+        @Override public @NotNull Set<Placeholder> getGlobalPlaceholders() { return Collections.emptySet();}
         @Override public @NotNull String translatePlaceholders(@NotNull String text) { return text; }
         @Override public @NotNull String translatePlaceholders(@NotNull String text, @NotNull PlaceholderContext context) { return text; }
         @Override public @NotNull ConfigLogger getLogger() { return ConfigLogger.EMPTY; }

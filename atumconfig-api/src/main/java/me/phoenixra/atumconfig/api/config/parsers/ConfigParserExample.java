@@ -11,10 +11,11 @@ import org.jetbrains.annotations.Nullable;
 public class ConfigParserExample implements ConfigParser<ExampleParseObj> {
     @Override
     public @Nullable Config toConfig(Object value, Config emptyConfig) {
-        if(value instanceof ExampleParseObj parse){
-            emptyConfig.set("id", parse.id());
-            emptyConfig.set("test", parse.test());
-            emptyConfig.set("value", parse.value());
+        if(value instanceof ExampleParseObj){
+            ExampleParseObj parse = (ExampleParseObj) value;
+            emptyConfig.set("id", parse.getId());
+            emptyConfig.set("test", parse.isTest());
+            emptyConfig.set("value", parse.getValue());
             return emptyConfig;
         }
         return null;

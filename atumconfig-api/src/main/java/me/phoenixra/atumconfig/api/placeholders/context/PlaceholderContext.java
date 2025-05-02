@@ -2,19 +2,20 @@ package me.phoenixra.atumconfig.api.placeholders.context;
 
 
 
+import me.phoenixra.atumconfig.api.utils.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
+
 
 
 /**
  * A class that contains the injectable placeholders.
  *
- * @param placeholderList The PlaceholderInjectable context.
  */
-public record PlaceholderContext(@NotNull PlaceholderList placeholderList) {
-
+public class PlaceholderContext {
+    @NotNull
+    private final PlaceholderList placeholderList;
     /**
      * Empty Context, containing empty placeholder list
      */
@@ -36,7 +37,6 @@ public record PlaceholderContext(@NotNull PlaceholderList placeholderList) {
      *
      * @return The PlaceholderInjectable context.
      */
-    @Override
     @NotNull
     public PlaceholderList placeholderList() {
         return placeholderList;
@@ -74,9 +74,10 @@ public record PlaceholderContext(@NotNull PlaceholderList placeholderList) {
             return true;
         }
 
-        if (!(o instanceof PlaceholderContext that)) {
+        if (!(o instanceof PlaceholderContext)) {
             return false;
         }
+        PlaceholderContext that = (PlaceholderContext)o;
         return placeholderList().equals(that.placeholderList());
     }
 

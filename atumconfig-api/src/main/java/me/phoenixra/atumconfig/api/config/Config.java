@@ -7,6 +7,7 @@ import me.phoenixra.atumconfig.api.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import me.phoenixra.atumconfig.api.utils.Objects;
 import java.util.*;
 
 /**
@@ -86,7 +87,7 @@ public interface Config extends PlaceholderList {
     @NotNull
     default List<String> recurseKeys(@NotNull Set<String> found,
                                      @NotNull String root) {
-        return List.of();
+        return Collections.emptyList();
     }
 
     /**

@@ -11,8 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -78,7 +81,7 @@ public class SubsectionsTest {
 
         Map<String, Config> subs = cfg.getAllSubsections();
         // only "a" and "b" should appear, in that insertion order
-        assertEquals(List.of("a", "b"), new ArrayList<>(subs.keySet()));
+        assertEquals(Arrays.asList("a", "b"), new ArrayList<>(subs.keySet()));
         assertEquals(1, subs.get("a").getInt("x"));
         assertEquals(2, subs.get("b").getInt("y"));
         assertFalse(subs.containsKey("c"), "primitive key 'c' shouldn't appear");
@@ -88,18 +91,24 @@ public class SubsectionsTest {
     void testGetAllSubsections_fileBacked() throws IOException {
         // write a file with one nested object and one primitive leaf
         Path f = tmpRoot.resolve("data" + TestHelper.FILE_EXT);
-        Files.writeString(f, mkNested("outer", "i", 1, "leaf", "val"));
+        Files.write(
+                f,
+                mkNested("outer", "i", 1, "leaf", "val")
+                        .getBytes(StandardCharsets.UTF_8),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+        );
 
         ConfigFile cf = manager.createConfigFile(
                 TestHelper.CONFIG_TYPE,
                 "data",
-                Path.of("data" + TestHelper.FILE_EXT),
+                Paths.get("data" + TestHelper.FILE_EXT),
                 false
         );
 
         Map<String, Config> subs = cf.getAllSubsections();
         // should only contain the "outer" section
-        assertEquals(List.of("outer"), new ArrayList<>(subs.keySet()));
+        assertEquals(Arrays.asList("outer"), new ArrayList<>(subs.keySet()));
         assertFalse(subs.containsKey("leaf"), "'leaf' is not a subsection");
 
         Config outer = subs.get("outer");

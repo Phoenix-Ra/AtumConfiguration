@@ -17,6 +17,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,15 +43,32 @@ class ConfigCatalogTest {
     // 1) INITIAL LOAD SCENARIOS
     //───────────────────────────────────────────────────────────
 
-    record Scenario(
-            String name,
-            boolean nested,
-            boolean fromDisk,
-            Consumer<Path> setupFs,
-            List<String> expectedIds,
-            boolean expectLoadDefaults
-    ) {
-        @Override public String toString() { return name; }
+    static class Scenario {
+        private final String name;
+        private final boolean nested;
+        private final boolean fromDisk;
+        private final Consumer<Path> setupFs;
+        private final List<String> expectedIds;
+        private final boolean expectLoadDefaults;
+
+        public Scenario(String name,
+                        boolean nested,
+                        boolean fromDisk,
+                        Consumer<Path> setupFs,
+                        List<String> expectedIds,
+                        boolean expectLoadDefaults) {
+            this.name = name;
+            this.nested = nested;
+            this.fromDisk = fromDisk;
+            this.setupFs = setupFs;
+            this.expectedIds = expectedIds;
+            this.expectLoadDefaults = expectLoadDefaults;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 
     static Stream<Arguments> initialLoadScenarios() {
@@ -59,14 +77,14 @@ class ConfigCatalogTest {
                         "Disk/Flat",
                         false, true,
                         ConfigCatalogTest::setupDiskFlat,
-                        List.of("good1", "good2"),
+                        Arrays.asList("good1", "good2"),
                         false
                 )),
                 Arguments.of(new Scenario(
                         "Disk/Nested",
                         true, true,
                         ConfigCatalogTest::setupDiskNested,
-                        List.of("good1", "good2", "pups/good0"),
+                        Arrays.asList("good1", "good2", "pups/good0"),
                         false
                 )),
                 Arguments.of(new Scenario(
@@ -99,7 +117,7 @@ class ConfigCatalogTest {
         ConfigCatalog catalog = configManager.createCatalog(
                 TestHelper.CONFIG_TYPE,
                 "cat",
-                Path.of("catalog"),
+                Paths.get("catalog"),
                 sc.nested,
                 new ConfigCatalogListener() {
                     public void onClear()            { loaded.clear(); defaults.set(false); }
@@ -169,11 +187,11 @@ class ConfigCatalogTest {
 
         List<String> loaded = new ArrayList<>();
         ConfigCatalog c = configManager.createCatalog(
-                TestHelper.CONFIG_TYPE, "cat", Path.of("catalog"), false,
+                TestHelper.CONFIG_TYPE, "cat", Paths.get("catalog"), false,
                 new SimpleListener(loaded, null)
         );
         c.reload();
-        assertTrue(loaded.containsAll(List.of("a", "b")));
+        assertTrue(loaded.containsAll(Arrays.asList("a", "b")));
 
         // add c, remove b
         Files.createFile(base.resolve("c" + TestHelper.FILE_EXT));
@@ -201,7 +219,7 @@ class ConfigCatalogTest {
         writeSimpleKeyValue(f, "x", 1);
 
         ConfigCatalog c = configManager.createCatalog(
-                TestHelper.CONFIG_TYPE, "cat", Path.of("catalog"), false,
+                TestHelper.CONFIG_TYPE, "cat", Paths.get("catalog"), false,
                 new SimpleListener(null, null)
         );
         c.reload();
@@ -222,7 +240,7 @@ class ConfigCatalogTest {
     void testListenerOrdering() {
         List<String> events = new ArrayList<>();
         ConfigCatalog c = configManager.createCatalog(
-                TestHelper.CONFIG_TYPE, "cat", Path.of("catalog"), false,
+                TestHelper.CONFIG_TYPE, "cat", Paths.get("catalog"), false,
                 new ConfigCatalogListener() {
                     public void onClear()            { events.add("clear"); }
                     public void onConfigLoaded(@NotNull ConfigFile cf) { events.add("load:" + cf.getId()); }
@@ -253,7 +271,7 @@ class ConfigCatalogTest {
 
         List<String> loaded = new ArrayList<>();
         ConfigCatalog c = configManager.createCatalog(
-                TestHelper.CONFIG_TYPE, "cat", Path.of("catalog"), false,
+                TestHelper.CONFIG_TYPE, "cat", Paths.get("catalog"), false,
                 new SimpleListener(loaded, null)
         );
 
@@ -278,13 +296,13 @@ class ConfigCatalogTest {
 
         List<String> la = new ArrayList<>();
         ConfigCatalog ca = configManager.createCatalog(
-                TestHelper.CONFIG_TYPE, "A", Path.of("a"), false,
+                TestHelper.CONFIG_TYPE, "A", Paths.get("a"), false,
                 new SimpleListener(la, null)
         );
 
         List<String> lb = new ArrayList<>();
         ConfigCatalog cb = configManager.createCatalog(
-                TestHelper.CONFIG_TYPE, "B", Path.of("b"), false,
+                TestHelper.CONFIG_TYPE, "B", Paths.get("b"), false,
                 new SimpleListener(lb, null)
         );
 
@@ -314,7 +332,7 @@ class ConfigCatalogTest {
 
         AtomicBoolean fired = new AtomicBoolean(false);
         ConfigCatalog c = configManager.createCatalog(
-                TestHelper.CONFIG_TYPE, "cat", Path.of("catalog"), false,
+                TestHelper.CONFIG_TYPE, "cat", Paths.get("catalog"), false,
                 new SimpleListener(null, fired)
         );
 
@@ -334,21 +352,39 @@ class ConfigCatalogTest {
     private static void writeSimpleKeyValue(Path f, String key, int val) throws IOException {
         String content;
         switch (TestHelper.CONFIG_TYPE) {
-            case JSON  -> content = "{\"" + key + "\":" + val + "}";
-            case YAML  -> content = key + ": " + val + "\n";
-            default     -> throw new IllegalStateException("unsupported: " + TestHelper.CONFIG_TYPE);
+            case JSON:
+                content = "{\"" + key + "\":" + val + "}";
+                break;
+            case YAML:
+                content = key + ": " + val + "\n";
+                break;
+            default:
+                throw new IllegalStateException("unsupported: " + TestHelper.CONFIG_TYPE);
         }
-        Files.writeString(f, content);
+        Files.write(
+                f,
+                content.getBytes(StandardCharsets.UTF_8),
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING
+        );
     }
 
     private static void writeInvalidFile(Path f) throws IOException {
         String invalid;
         switch (TestHelper.CONFIG_TYPE) {
-            case JSON  -> invalid = "{ not valid JSON }";
-            case YAML  -> invalid = "not valid: [unbalanced";
-            default     -> throw new IllegalStateException("unsupported: " + TestHelper.CONFIG_TYPE);
+            case JSON:
+                invalid = "{ not valid JSON }";
+                break;
+            case YAML:
+                invalid = "not valid: [unbalanced";
+                break;
+            default:
+                throw new IllegalStateException("unsupported: " + TestHelper.CONFIG_TYPE);
         }
-        Files.writeString(f, invalid);
+        Files.write(
+                f,
+                invalid.getBytes(StandardCharsets.UTF_8),
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING
+        );
     }
 
     private static class SimpleListener implements ConfigCatalogListener {

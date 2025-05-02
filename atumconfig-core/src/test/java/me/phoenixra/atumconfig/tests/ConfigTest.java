@@ -9,8 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -31,7 +30,11 @@ public class ConfigTest {
 
     @Test
     void testInitialDataRoundTrip() {
-        Map<String, Object> initial = Map.of("a", 1, "b", "two", "flag", true);
+
+        Map<String, Object> initial = new HashMap<>();
+        initial.put("a",1);
+        initial.put("b","two");
+        initial.put("flag",true);
         Config cfg = cm.createConfig(TestHelper.CONFIG_TYPE, initial);
 
         assertEquals(1,    cfg.getInt("a"));
@@ -69,12 +72,12 @@ public class ConfigTest {
         assertEquals(1234567890123L,         cfg.getLong("l"));
         assertFalse(cfg.getBool("flag"));
         List<Integer> list = cfg.getIntList("list");
-        assertEquals(List.of(1, 2, 3), list);
+        assertEquals(Arrays.asList(1, 2, 3), list);
 
         // defaults
         assertEquals(123,   cfg.getIntOrDefault("missingInt", 123));
         assertFalse(cfg.getBool("noFlag"));
-        assertEquals(List.of(), cfg.getStringList("noList"));
+        assertEquals(Collections.emptyList(), cfg.getStringList("noList"));
     }
 
     //――――――――――――――――――――――――――――――――――――――――――――――
@@ -82,36 +85,42 @@ public class ConfigTest {
     //――――――――――――――――――――――――――――――――――――――――――――――
 
     private static String getInvalidRaw() {
-        return switch (TestHelper.CONFIG_TYPE) {
-            case JSON -> "{ not valid JSON ";
-            case YAML -> "not valid: [unbalanced";
-            default    -> throw new IllegalStateException("Unsupported: " + TestHelper.CONFIG_TYPE);
-        };
+        switch (TestHelper.CONFIG_TYPE) {
+            case JSON:
+                return "{ not valid JSON ";
+            case YAML:
+                return "not valid: [unbalanced";
+            default:
+                throw new IllegalStateException("Unsupported: " + TestHelper.CONFIG_TYPE);
+        }
     }
 
     private static String getTypeSafeRaw() {
-        return switch (TestHelper.CONFIG_TYPE) {
-            case JSON -> """
-                {
-                  "i": 7,
-                  "d": 3.14,
-                  "l": 1234567890123,
-                  "flag": false,
-                  "list": [1, 2, 3]
-                }
-                """;
-            case YAML -> """
-                i: 7
-                d: 3.14
-                l: 1234567890123
-                flag: false
-                list:
-                  - 1
-                  - 2
-                  - 3
-                """;
-            default    -> throw new IllegalStateException("Unsupported: " + TestHelper.CONFIG_TYPE);
-        };
+        String raw;
+        switch (TestHelper.CONFIG_TYPE) {
+            case JSON:
+                raw = "{\n"
+                        + "  \"i\": 7,\n"
+                        + "  \"d\": 3.14,\n"
+                        + "  \"l\": 1234567890123,\n"
+                        + "  \"flag\": false,\n"
+                        + "  \"list\": [1, 2, 3]\n"
+                        + "}\n";
+                break;
+            case YAML:
+                raw = "i: 7\n"
+                        + "d: 3.14\n"
+                        + "l: 1234567890123\n"
+                        + "flag: false\n"
+                        + "list:\n"
+                        + "  - 1\n"
+                        + "  - 2\n"
+                        + "  - 3\n";
+                break;
+            default:
+                throw new IllegalStateException("Unsupported: " + TestHelper.CONFIG_TYPE);
+        }
+        return raw;
     }
 
 

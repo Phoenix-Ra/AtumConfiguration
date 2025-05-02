@@ -1,4 +1,9 @@
 package me.phoenixra.atumconfig.api.tuples;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
+
 import java.util.Objects;
 
 /**
@@ -7,9 +12,33 @@ import java.util.Objects;
  * @param <A> The first value
  * @param <B> The second value
  */
-public record PairRecord<A, B>(A first, B second) {
+@Setter
+@AllArgsConstructor
+public class PairRecord<A, B> {
+    /**
+     * The first item in the tuple.
+     */
+    private A first;
 
+    /**
+     * The second item in the tuple.
+     */
+    private B second;
 
+    /**
+     *
+     * @return first value
+     */
+    public A first(){
+        return first;
+    }
+    /**
+     *
+     * @return second value
+     */
+    public B second(){
+        return second;
+    }
     @Override
     public String toString() {
         return "PairRecord{" +

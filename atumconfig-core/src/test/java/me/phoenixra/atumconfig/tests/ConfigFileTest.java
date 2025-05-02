@@ -1,6 +1,7 @@
 package me.phoenixra.atumconfig.tests;
 
 import me.phoenixra.atumconfig.api.ConfigManager;
+import me.phoenixra.atumconfig.api.config.Config;
 import me.phoenixra.atumconfig.api.config.ConfigFile;
 
 
@@ -13,8 +14,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 import static me.phoenixra.atumconfig.tests.helpers.TestHelper.CONFIG_TYPE;
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,32 +41,24 @@ public class ConfigFileTest {
     private static void writeSimpleKeyValue(Path file, String key, Object val) throws IOException {
         String content;
         switch (CONFIG_TYPE) {
-            case JSON -> content = "{\"" + key + "\":" + val + "}";
-            case YAML -> content = key + ": " + val + "\n";
-            default    -> throw new IllegalStateException("Unsupported type: " + CONFIG_TYPE);
+            case JSON:
+                content = "{\"" + key + "\":" + val + "}";
+                break;
+            case YAML:
+                content = key + ": " + val + "\n";
+                break;
+            default:
+                throw new IllegalStateException("Unsupported type: " + CONFIG_TYPE);
         }
-        Files.writeString(file, content);
+        // write it out, creating or replacing the file
+        Files.write(
+                file,
+                content.getBytes(StandardCharsets.UTF_8),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+        );
     }
 
-    // Helper to write a nested structure for testSaveWritesCurrentConfig
-    private static void writeComplexExample(Path file) throws IOException {
-        String content;
-        switch (CONFIG_TYPE) {
-            case JSON -> content = """
-                {
-                  "x": 123,
-                  "nested": { "y": "hello" }
-                }
-                """;
-            case YAML -> content = """
-                x: 123
-                nested:
-                  y: "hello"
-                """;
-            default    -> throw new IllegalStateException("Unsupported type: " + CONFIG_TYPE);
-        }
-        Files.writeString(file, content);
-    }
 
     @Test
     void testLoadExistingFile() throws IOException {
@@ -72,7 +68,7 @@ public class ConfigFileTest {
         ConfigFile cf = configManager.createConfigFile(
                 CONFIG_TYPE,
                 "test",
-                Path.of("test" + TestHelper.FILE_EXT),
+                Paths.get("test" + TestHelper.FILE_EXT),
                 false
         );
 
@@ -88,7 +84,7 @@ public class ConfigFileTest {
         ConfigFile cf = configManager.createConfigFile(
                 CONFIG_TYPE,
                 "new",
-                Path.of("new" + TestHelper.FILE_EXT)
+                Paths.get("new" + TestHelper.FILE_EXT)
         );
 
         assertTrue(Files.exists(file), "file should have been created");
@@ -102,7 +98,7 @@ public class ConfigFileTest {
         ConfigFile cf = configManager.createConfigFile(
                 CONFIG_TYPE,
                 "cycle",
-                Path.of("cycle" + TestHelper.FILE_EXT)
+                Paths.get("cycle" + TestHelper.FILE_EXT)
         );
         cf.set("a", 1);
         cf.save();
@@ -121,7 +117,7 @@ public class ConfigFileTest {
         ConfigFile cf = configManager.createConfigFile(
                 CONFIG_TYPE,
                 "out",
-                Path.of("out" + TestHelper.FILE_EXT)
+                Paths.get("out" + TestHelper.FILE_EXT)
         );
 
         // set a top‐level and a nested value
@@ -129,8 +125,11 @@ public class ConfigFileTest {
         cf.set("nested.y", "hello");
         cf.save();
 
-        String raw = Files.readString(tmpRoot.resolve("out" + TestHelper.FILE_EXT));
-
+        Path outFile = tmpRoot.resolve("out" + TestHelper.FILE_EXT);
+        String raw = new String(
+                Files.readAllBytes(outFile),
+                StandardCharsets.UTF_8
+        );
         // now assert according to format
         if (CONFIG_TYPE == ConfigType.JSON) {
             assertTrue(raw.contains("\"x\": 123"),   "should serialize 'x' in JSON");
@@ -151,7 +150,7 @@ public class ConfigFileTest {
         ConfigFile cf = configManager.createConfigFile(
                 CONFIG_TYPE,
                 "rem",
-                Path.of("rem" + TestHelper.FILE_EXT)
+                Paths.get("rem" + TestHelper.FILE_EXT)
         );
         cf.set("foo", 123);
         cf.save();
@@ -169,7 +168,7 @@ public class ConfigFileTest {
         ConfigFile cf = configManager.createConfigFile(
                 CONFIG_TYPE,
                 "keys",
-                Path.of("keys" + TestHelper.FILE_EXT)
+                Paths.get("keys" + TestHelper.FILE_EXT)
         );
         cf.set("x.y.z", "v");
         cf.save();
@@ -187,12 +186,12 @@ public class ConfigFileTest {
         ConfigFile cf = configManager.createConfigFile(
                 CONFIG_TYPE,
                 "sub",
-                Path.of("sub" + TestHelper.FILE_EXT)
+                Paths.get("sub" + TestHelper.FILE_EXT)
         );
         cf.set("outer.inner", "orig");
         cf.save();
 
-        var sub = cf.getSubsection("outer");
+        Config sub = cf.getSubsection("outer");
         assertEquals("orig", sub.getString("inner"));
 
         sub.set("newKey", "added");
@@ -207,13 +206,13 @@ public class ConfigFileTest {
     @Test
     void testReloadAllAcrossFiles() throws IOException {
         ConfigFile a = configManager.createConfigFile(
-                CONFIG_TYPE, "a", Path.of("a" + TestHelper.FILE_EXT)
+                CONFIG_TYPE, "a", Paths.get("a" + TestHelper.FILE_EXT)
         );
         a.set("val", 1);
         a.save();
 
         ConfigFile b = configManager.createConfigFile(
-                CONFIG_TYPE, "b", Path.of("b" + TestHelper.FILE_EXT)
+                CONFIG_TYPE, "b", Paths.get("b" + TestHelper.FILE_EXT)
         );
         b.set("val", 2);
         b.save();
@@ -232,7 +231,7 @@ public class ConfigFileTest {
     @Test
     void testManagerRegistryRetrieval() throws IOException {
         configManager.createConfigFile(
-                CONFIG_TYPE, "one", Path.of("one" + TestHelper.FILE_EXT)
+                CONFIG_TYPE, "one", Paths.get("one" + TestHelper.FILE_EXT)
         );
         assertTrue(configManager.getConfigFile("one").isPresent());
         assertTrue(configManager.getConfigFilesMap().containsKey("one"));
@@ -244,7 +243,7 @@ public class ConfigFileTest {
                 configManager.createConfigFile(
                         CONFIG_TYPE,
                         "missing",
-                        Path.of("nope" + TestHelper.FILE_EXT),
+                        Paths.get("nope" + TestHelper.FILE_EXT),
                         true
                 )
         );
@@ -259,7 +258,7 @@ public class ConfigFileTest {
         ConfigFile cf = configManager.createConfigFile(
                 CONFIG_TYPE,
                 "def",
-                Path.of("defaults" + TestHelper.FILE_EXT),
+                Paths.get("defaults" + TestHelper.FILE_EXT),
                 false
         );
 

@@ -82,9 +82,9 @@ public class AtumConfigFile extends AtumConfig implements ConfigFile {
 
     @Override
     public void save() throws IOException {
-        Files.writeString(
+        Files.write(
                 absolutePath,
-                toPlaintext(),
+                toPlaintext().getBytes(StandardCharsets.UTF_8),
                 StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING
         );
@@ -99,10 +99,10 @@ public class AtumConfigFile extends AtumConfig implements ConfigFile {
 
     @Override
     public String toPlaintext() {
-        // Filter out comment lines and preserve order
-        return super.toPlaintext().lines()
-                .filter(line -> !line.trim().startsWith("#"))
-                .collect(Collectors.joining("\n"))
-                + "\n";
+        StringBuilder sb = new StringBuilder();
+        for (String line : super.toPlaintext().split("\\r?\\n")) {
+            sb.append(line).append('\n');
+        }
+        return sb.toString();
     }
 }

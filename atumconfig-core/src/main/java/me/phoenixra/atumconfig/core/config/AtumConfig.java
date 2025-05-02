@@ -126,7 +126,7 @@ public class AtumConfig implements Config {
     public <T> @Nullable T getParsedOrNull(@NotNull String path,
                                            Class<T> clazz) {
         Optional<ConfigParser<T>> parser = getConfigOwner().getConfigParser(clazz);
-        if(parser.isEmpty()){
+        if(!parser.isPresent()){
             return null;
         }
         Config subsection = getSubsectionOrNull(path);
@@ -137,7 +137,7 @@ public class AtumConfig implements Config {
     @Override
     public @Nullable <T> List<T> getParsedListOrNull(@NotNull String path, Class<T> clazz) {
         Optional<ConfigParser<T>> parserOptional = getConfigOwner().getConfigParser(clazz);
-        if(parserOptional.isEmpty()){
+        if(!parserOptional.isPresent()){
             return null;
         }
         List<Config> list = getList(path, Config.class);
@@ -148,7 +148,7 @@ public class AtumConfig implements Config {
         return list.stream()
                 .map(parser::fromConfig)
                 .filter(Objects::nonNull)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -310,9 +310,10 @@ public class AtumConfig implements Config {
 
     private <T> @Nullable List<T> getList(String path, Class<T> type) {
         Object obj = get(path);
-        if (!(obj instanceof Iterable<?> iterable)) {
+        if (!(obj instanceof Iterable<?>)) {
             return null;
         }
+        Iterable<?> iterable = (Iterable<?>)obj;
 
         List<T> result = new ArrayList<>();
         for (Object elem : iterable) {

@@ -11,8 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -41,21 +44,23 @@ public class PlaintextTest {
     private static void writeOrderedExample(Path file) throws IOException {
         String content;
         if (isJson()) {
-            content = """
-                {
-                  "first": true,
-                  "second": "two",
-                  "third": 3
-                }
-                """;
+            content = "{\n"
+                    + "  \"first\": true,\n"
+                    + "  \"second\": \"two\",\n"
+                    + "  \"third\": 3\n"
+                    + "}\n";
         } else {
-            content = """
-                first: true
-                second: "two"
-                third: 3
-                """;
+            content = "first: true\n"
+                    + "second: \"two\"\n"
+                    + "third: 3\n";
         }
-        Files.writeString(file, content);
+
+        Files.write(
+                file,
+                content.getBytes(StandardCharsets.UTF_8),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+        );
     }
 
     @Test
@@ -75,7 +80,7 @@ public class PlaintextTest {
         assertFalse(        reparsed.getBool("gamma"));
 
         List<String> keys = reparsed.getKeys(false);
-        assertEquals(List.of("alpha", "beta", "gamma"), keys);
+        assertEquals(Arrays.asList("alpha", "beta", "gamma"), keys);
 
         int iA = plain.indexOf(keyToken("alpha"));
         int iB = plain.indexOf(keyToken("beta"));
@@ -92,7 +97,7 @@ public class PlaintextTest {
         ConfigFile file = manager.createConfigFile(
                 TestHelper.CONFIG_TYPE,
                 "settings",
-                Path.of("settings" + TestHelper.FILE_EXT),
+                Paths.get("settings" + TestHelper.FILE_EXT),
                 false
         );
 
@@ -105,7 +110,7 @@ public class PlaintextTest {
         assertEquals(3,      round.getInt("third"));
 
         List<String> keys = round.getKeys(false);
-        assertEquals(List.of("first", "second", "third"), keys);
+        assertEquals(Arrays.asList("first", "second", "third"), keys);
 
         int i1 = out.indexOf(keyToken("first"));
         int i2 = out.indexOf(keyToken("second"));
@@ -116,14 +121,14 @@ public class PlaintextTest {
 
     @Test
     void nestedObjects_orderPreserved() {
-        var innerA = new LinkedHashMap<String, Object>();
+        LinkedHashMap<String, Object> innerA = new LinkedHashMap<>();
         innerA.put("x", 1);
         innerA.put("y", 2);
-        var innerB = new LinkedHashMap<String, Object>();
+        Map<String, Object> innerB = new LinkedHashMap<>();
         innerB.put("m", 3);
         innerB.put("n", 4);
 
-        var data = new LinkedHashMap<String, Object>();
+        Map<String, Object> data = new LinkedHashMap<>();
         data.put("a", innerA);
         data.put("b", innerB);
 
@@ -131,26 +136,36 @@ public class PlaintextTest {
         String plain = cfg.toPlaintext();
         Config round = manager.createConfigFromString(TestHelper.CONFIG_TYPE, plain);
 
-        assertEquals(List.of("a", "b"), round.getKeys(false));
-        assertEquals(List.of("x", "y"), round.getSubsection("a").getKeys(false));
-        assertEquals(List.of("m", "n"), round.getSubsection("b").getKeys(false));
+        assertEquals(Arrays.asList("a", "b"), round.getKeys(false));
+        assertEquals(Arrays.asList("x", "y"), round.getSubsection("a").getKeys(false));
+        assertEquals(Arrays.asList("m", "n"), round.getSubsection("b").getKeys(false));
     }
 
     @Test
-    void primitiveAndObjectLists_orderPreserved() {
-        var data = new LinkedHashMap<String, Object>();
-        data.put("primList", List.of("one", "two", "three"));
+    public void primitiveAndObjectLists_orderPreserved() {
+        // explicit types instead of 'var'
+        LinkedHashMap<String, Object> data = new LinkedHashMap<>();
 
-        var o1 = Map.<String, Object>of("id", "i1");
-        var o2 = Map.<String, Object>of("id", "i2");
-        data.put("objList", List.of(o1, o2));
+        // List.of → Arrays.asList
+        data.put("primList", Arrays.asList("one", "two", "three"));
 
-        Config cfg = manager.createConfig(TestHelper.CONFIG_TYPE, data);
+        // Map.of → Collections.singletonMap (or new HashMap<>() if you need mutability)
+        Map<String, Object> o1 = Collections.singletonMap("id", "i1");
+        Map<String, Object> o2 = Collections.singletonMap("id", "i2");
+        data.put("objList", Arrays.asList(o1, o2));
+
+        Config cfg   = manager.createConfig(TestHelper.CONFIG_TYPE, data);
         String plain = cfg.toPlaintext();
         Config round = manager.createConfigFromString(TestHelper.CONFIG_TYPE, plain);
 
-        assertEquals(List.of("one","two","three"), round.getStringList("primList"));
-        var objs = round.getSubsectionList("objList");
+        // assert on primitive list
+        assertEquals(
+                Arrays.asList("one", "two", "three"),
+                round.getStringList("primList")
+        );
+
+        // assert on object list
+        List<? extends Config> objs = round.getSubsectionList("objList");
         assertEquals(2, objs.size());
         assertEquals("i1", objs.get(0).getString("id"));
         assertEquals("i2", objs.get(1).getString("id"));
@@ -158,7 +173,7 @@ public class PlaintextTest {
 
     @Test
     void nullRemoval_keyExcludedInPlaintext() {
-        var data = new LinkedHashMap<String, Object>();
+        Map<String, Object> data = new LinkedHashMap<>();
         data.put("keep", "v1");
         data.put("remove", "v2");
 
@@ -172,7 +187,7 @@ public class PlaintextTest {
 
     @Test
     void updateDoesNotReorderExistingKeys() {
-        var data = new LinkedHashMap<String, Object>();
+        Map<String, Object> data = new LinkedHashMap<>();
         data.put("k1", 1);
         data.put("k2", 2);
         data.put("k3", 3);
@@ -183,7 +198,7 @@ public class PlaintextTest {
         String plain = cfg.toPlaintext();
         Config round = manager.createConfigFromString(TestHelper.CONFIG_TYPE, plain);
 
-        assertEquals(List.of("k1","k2","k3"), round.getKeys(false));
+        assertEquals(Arrays.asList("k1","k2","k3"), round.getKeys(false));
 
         int i1 = plain.indexOf(keyToken("k1"));
         int i2 = plain.indexOf(keyToken("k2"));
@@ -193,7 +208,7 @@ public class PlaintextTest {
 
     @Test
     void appendingNewKeys_appendsAtEnd() {
-        var data = new LinkedHashMap<String, Object>();
+        Map<String, Object> data = new LinkedHashMap<>();
         data.put("k1", 1);
         data.put("k2", 2);
         data.put("k3", 3);
@@ -204,7 +219,7 @@ public class PlaintextTest {
         String plain = cfg.toPlaintext();
         Config round = manager.createConfigFromString(TestHelper.CONFIG_TYPE, plain);
 
-        assertEquals(List.of("k1","k2","k3","k4"), round.getKeys(false));
+        assertEquals(Arrays.asList("k1","k2","k3","k4"), round.getKeys(false));
         int i3 = plain.indexOf(keyToken("k3"));
         int i4 = plain.indexOf(keyToken("k4"));
         assertTrue(i4 > i3);
@@ -212,7 +227,7 @@ public class PlaintextTest {
 
     @Test
     void removalAndReAddition_movesKeyToEnd() {
-        var data = new LinkedHashMap<String, Object>();
+        Map<String, Object> data = new LinkedHashMap<>();
         data.put("k1", 1);
         data.put("k2", 2);
         data.put("k3", 3);
@@ -224,7 +239,7 @@ public class PlaintextTest {
         String plain = cfg.toPlaintext();
         Config round = manager.createConfigFromString(TestHelper.CONFIG_TYPE, plain);
 
-        assertEquals(List.of("k1","k3","k2"), round.getKeys(false));
+        assertEquals(Arrays.asList("k1","k3","k2"), round.getKeys(false));
         int i3 = plain.indexOf(keyToken("k3"));
         int i2 = plain.lastIndexOf(keyToken("k2"));
         assertTrue(i2 > i3);
@@ -237,7 +252,7 @@ public class PlaintextTest {
         for (int i = 0; i < n; i++) order.add("key" + i);
         Collections.shuffle(order, new Random(12345));
 
-        var data = new LinkedHashMap<String, Object>();
+        Map<String, Object> data = new LinkedHashMap<>();
         for (int i = 0; i < n; i++) data.put(order.get(i), i);
 
         Config cfg = manager.createConfig(TestHelper.CONFIG_TYPE, data);

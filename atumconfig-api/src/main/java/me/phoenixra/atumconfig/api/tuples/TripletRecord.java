@@ -1,4 +1,8 @@
 package me.phoenixra.atumconfig.api.tuples;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Objects;
 
 /**
@@ -8,10 +12,49 @@ import java.util.Objects;
  * @param <B> The second value
  * @param <C> The third value
  */
+@Setter
+@AllArgsConstructor
+public class TripletRecord<A,B,C> {
 
-public record TripletRecord<A,B,C>(A first, B second, C third) {
+    /**
+     * The first item in the tuple.
+     */
+    private A first;
+
+    /**
+     * The second item in the tuple.
+     */
+    private B second;
+
+    /**
+     * The third item in the tuple.
+     */
+    private C third;
 
 
+    /**
+     *
+     * @return first value
+     */
+    public A first(){
+        return first;
+    }
+
+    /**
+     *
+     * @return second value
+     */
+    public B second(){
+        return second;
+    }
+
+    /**
+     *
+     * @return third value
+     */
+    public C third(){
+        return third;
+    }
     @Override
     public String toString() {
         return "TripletRecord{" +

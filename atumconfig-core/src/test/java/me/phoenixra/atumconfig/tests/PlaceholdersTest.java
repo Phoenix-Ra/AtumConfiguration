@@ -21,8 +21,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -59,7 +63,7 @@ public class PlaceholdersTest {
         String text = "Hello %foo% and %bar%!";
         List<String> found = PlaceholderHandler.findPlaceholdersIn(text);
         assertEquals(2, found.size());
-        assertTrue(found.containsAll(List.of("%foo%", "%bar%")));
+        assertTrue(found.containsAll(Arrays.asList("%foo%", "%bar%")));
     }
 
     @Test
@@ -83,7 +87,7 @@ public class PlaceholdersTest {
             @Override public void addPlaceholder(@NotNull Iterable<Placeholder> p, boolean d) {}
             @Override public void removePlaceholder(@NotNull Iterable<Placeholder> p, boolean d) {}
             @Override public void clearPlaceholders(boolean d) {}
-            @Override public @NotNull List<Placeholder> getPlaceholders() { return List.of(local); }
+            @Override public @NotNull List<Placeholder> getPlaceholders() { return Arrays.asList(local); }
         };
         PlaceholderContext ctx = new PlaceholderContext(list);
         assertEquals("User: LOCAL",
@@ -119,7 +123,7 @@ public class PlaceholdersTest {
             @Override public void addPlaceholder(@NotNull Iterable<Placeholder> p, boolean d) {}
             @Override public void removePlaceholder(@NotNull Iterable<Placeholder> p, boolean d) {}
             @Override public void clearPlaceholders(boolean d) {}
-            @Override public @NotNull List<Placeholder> getPlaceholders() { return List.of(local); }
+            @Override public @NotNull List<Placeholder> getPlaceholders() { return Arrays.asList(local); }
         };
         PlaceholderContext merged = new PlaceholderContext(PlaceholderList.EMPTY)
                 .withContext(localList);
@@ -135,7 +139,7 @@ public class PlaceholdersTest {
             @Override public void addPlaceholder(@NotNull Iterable<Placeholder> p, boolean d) {}
             @Override public void removePlaceholder(@NotNull Iterable<Placeholder> p, boolean d) {}
             @Override public void clearPlaceholders(boolean d) {}
-            @Override public @NotNull List<Placeholder> getPlaceholders() { return List.of(localX); }
+            @Override public @NotNull List<Placeholder> getPlaceholders() { return Arrays.asList(localX); }
         };
         PlaceholderContext merged = new PlaceholderContext(PlaceholderList.EMPTY)
                 .withContext(localList);
@@ -154,18 +158,23 @@ public class PlaceholdersTest {
     void formattedStringList_shouldReplacePlaceholdersInList() throws IOException {
         handler.registerGlobalPlaceholder(new StaticPlaceholder("one", () -> "1"));
         handler.registerGlobalPlaceholder(new StaticPlaceholder("two", () -> "2"));
-        String raw = mkListMapping("vals", List.of("%one%", "%two%", "done"));
+        String raw = mkListMapping("vals", Arrays.asList("%one%", "%two%", "done"));
         Config cfg = manager.createConfigFromString(TestHelper.CONFIG_TYPE, raw);
-        assertEquals(List.of("1","2","done"), cfg.getFormattedStringList("vals"));
+        assertEquals(Arrays.asList("1","2","done"), cfg.getFormattedStringList("vals"));
     }
 
     @Test
     void createConfigFile_onDisk_shouldAlsoHonorPlaceholders() throws IOException {
         Path f = tmpRoot.resolve("test" + TestHelper.FILE_EXT);
-        Files.writeString(f, mkMapping("x", "%foo%!"));
+        Files.write(
+                f,
+                mkMapping("x", "%foo%!").getBytes(StandardCharsets.UTF_8),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+        );
         handler.registerGlobalPlaceholder(new StaticPlaceholder("foo", () -> "bar"));
         ConfigFile cf = manager.createConfigFile(
-                TestHelper.CONFIG_TYPE, "test", Path.of("test" + TestHelper.FILE_EXT), false
+                TestHelper.CONFIG_TYPE, "test", Paths.get("test" + TestHelper.FILE_EXT), false
         );
         assertEquals("bar!", cf.getFormattedString("x"));
     }
@@ -196,7 +205,7 @@ public class PlaceholdersTest {
         StaticPlaceholder sp = new StaticPlaceholder("x", () -> "REPLACED");
         cfg.addPlaceholders(true, sp);
         assertEquals("REPLACED", cfg.getFormattedString("val"));
-        cfg.removePlaceholder(List.of(sp), true);
+        cfg.removePlaceholder(Arrays.asList(sp), true);
         assertEquals("%x%", cfg.getFormattedString("val"));
         cfg.addPlaceholders(true, sp);
         cfg.clearPlaceholders(true);
@@ -222,19 +231,27 @@ public class PlaceholdersTest {
     //――――――――――――――――――――――――――――――――――――――――――――――
     // helpers to generate JSON or YAML
     //――――――――――――――――――――――――――――――――――――――――――――――
-
     private static String mkMapping(String key, String value) {
-        return switch (TestHelper.CONFIG_TYPE) {
-            case JSON -> "{\"" + key + "\": \"" + value + "\"}";
-            case YAML -> key + ": \"" + value + "\"\n";
-        };
+        switch (TestHelper.CONFIG_TYPE) {
+            case JSON:
+                return "{\"" + key + "\": \"" + value + "\"}";
+            case YAML:
+                return key + ": \"" + value + "\"\n";
+            default:
+                throw new IllegalStateException("Unsupported: " + TestHelper.CONFIG_TYPE);
+        }
     }
 
     private static String mkNestedMapping(String outer, String inner, String val) {
-        return switch (TestHelper.CONFIG_TYPE) {
-            case JSON -> "{\"" + outer + "\": {\"" + inner + "\": \"" + val + "\"}}";
-            case YAML -> outer + ":\n  " + inner + ": \"" + val + "\"\n";
-        };
+        switch (TestHelper.CONFIG_TYPE) {
+            case JSON:
+                return "{\"" + outer + "\": {\"" + inner + "\": \"" + val + "\"}}";
+            case YAML:
+                return outer + ":\n"
+                        + "  " + inner + ": \"" + val + "\"\n";
+            default:
+                throw new IllegalStateException("Unsupported: " + TestHelper.CONFIG_TYPE);
+        }
     }
 
     private static String mkListMapping(String key, List<String> items) {
@@ -250,7 +267,7 @@ public class PlaceholdersTest {
         } else {
             StringBuilder sb = new StringBuilder();
             sb.append(key).append(":\n");
-            for (var it : items) {
+            for (String it : items) {
                 sb.append("  - \"").append(it).append("\"\n");
             }
             return sb.toString();

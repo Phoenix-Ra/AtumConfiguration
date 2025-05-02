@@ -39,6 +39,7 @@ public class PairRecord<A, B> {
     public B second(){
         return second;
     }
+
     @Override
     public String toString() {
         return "PairRecord{" +

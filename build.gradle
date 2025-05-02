@@ -150,7 +150,7 @@ allprojects {
         archiveClassifier.set('')
     }
     compileJava{
-        sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
         [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
         dependsOn(clean)
     }

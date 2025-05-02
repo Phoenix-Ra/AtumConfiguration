@@ -10,7 +10,7 @@ buildscript {
 
     def version_active = versionProps['version.active'].toBoolean()
     def isSnapshot     = versionProps['version.snapshot'].toBoolean()
-    def version_branch= versionProps['version.branch'].toString()
+    def version_specified= versionProps['version.specified'].toString()
 
     def version_major  = versionProps['version.major'].toInteger()
     def version_minor  = versionProps['version.minor'].toInteger()
@@ -22,10 +22,10 @@ buildscript {
         if(version_active){
             version_build += 1
         }
-        version = "${version_major}.${version_minor}.${version_patch}${version_branch}-snapshot#${version_build}"
+        version = "${version_major}.${version_minor}.${version_patch}${version_specified}-snapshot#${version_build}"
         System.out.println("VERSIONING-SNAPSHOT")
     } else {
-        version = "${version_major}.${version_minor}.${version_patch}${version_branch}"
+        version = "${version_major}.${version_minor}.${version_patch}${version_specified}"
         System.out.println("VERSIONING-RELEASE")
 
     }

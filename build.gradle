@@ -135,11 +135,6 @@ allprojects {
     }
     check.dependsOn testYaml
 
-
-    compileJava {
-        dependsOn(clean)
-    }
-    //replace placeholders from gradle.properties
     java{
         withSourcesJar()
     }

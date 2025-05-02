@@ -56,28 +56,28 @@ class ConfigCatalogTest {
     static Stream<Arguments> initialLoadScenarios() {
         return Stream.of(
                 Arguments.of(new Scenario(
-                        "Disk / Flat",
+                        "Disk/Flat",
                         false, true,
                         ConfigCatalogTest::setupDiskFlat,
                         List.of("good1", "good2"),
                         false
                 )),
                 Arguments.of(new Scenario(
-                        "Disk / Nested",
+                        "Disk/Nested",
                         true, true,
                         ConfigCatalogTest::setupDiskNested,
                         List.of("good1", "good2", "pups/good0"),
                         false
                 )),
                 Arguments.of(new Scenario(
-                        "Resource / Flat",
+                        "Resource/Flat",
                         false, false,
                         base -> { /* nothing on disk; load from src/test/resources/catalog/* + FILE_EXT */ },
                         Collections.emptyList(),
                         true
                 )),
                 Arguments.of(new Scenario(
-                        "Resource / Nested",
+                        "Resource/Nested",
                         true, false,
                         base -> { /* nothing on disk */ },
                         Collections.emptyList(),

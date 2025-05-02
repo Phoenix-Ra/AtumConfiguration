@@ -109,14 +109,31 @@ allprojects {
 
         compileOnly fileTree(dir: 'libs', include: ['*.jar'])
     }
+
+    //TESTS. Go through all config types
     test {
         useJUnitPlatform()
-
-        testLogging {
-            events "passed", "skipped", "failed"
-            exceptionFormat "full"
-        }
+        systemProperty 'test.configType', 'JSON'
     }
+    tasks.register('testYaml', Test) {
+        useJUnitPlatform()
+        description = "Runs the full test suite with CONFIG_TYPE=YAML"
+        group = 'verification'
+
+
+        testClassesDirs = test.testClassesDirs
+        classpath = test.classpath
+
+        // flip to YAML
+        systemProperty 'test.configType', 'YAML'
+
+        // carry over any logging / JVM settings
+        testLogging.events = test.testLogging.events
+        testLogging.exceptionFormat = test.testLogging.exceptionFormat
+    }
+    check.dependsOn testYaml
+
+
     compileJava {
         dependsOn(clean)
     }

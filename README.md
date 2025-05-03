@@ -30,3 +30,6 @@ To start:
 
 
 ```
+
+Planned:
+- Changable config types supported by ConfigManager, allow custom config type parsers.

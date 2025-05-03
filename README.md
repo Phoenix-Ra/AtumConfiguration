@@ -32,4 +32,6 @@ To start:
 ```
 
 Planned:
-- Changable config types supported by ConfigManager (no strict bound to ConfigType enum), allow custom config type parsers.
+- Changable config types supported by ConfigManager (no strict bound to ConfigType enum)
+- Allow custom config type parsers
+- Move built-in config parsers to separate submodules, to allow including into projects only used staff

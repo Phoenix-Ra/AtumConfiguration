@@ -51,8 +51,8 @@ public class AtumConfigCatalog implements ConfigCatalog {
     @Override
     public void reload() {
 
-        listener.beforeReload();
-        listener.onClear();
+        listener.beforeReload(this);
+        listener.onClear(this);
         configFilesMap.clear();
 
         Path baseDir = configManager.getDirectory().resolve(directory);
@@ -89,23 +89,23 @@ public class AtumConfigCatalog implements ConfigCatalog {
                                     false
                             );
                             configFilesMap.put(configId, conf);
-                            listener.onConfigLoaded(conf);
+                            listener.onConfigLoaded(this, conf);
                         } catch (Throwable e) {
                             configManager.getLogger().logError(
                                     "Failed to load config '" + filename + "' in catalog '" + id + "'", e
                             );
-                            listener.onConfigFailed(relativeFile, e);
+                            listener.onConfigFailed(this, relativeFile, e);
                         }
                     });
         } catch (IOException e) {
             configManager.getLogger().logError("Failed scanning catalog directory: " + baseDir, e);
         } finally {
-            listener.afterReload();
+            listener.afterReload(this);
         }
     }
 
     private void loadDefaults() {
-        listener.beforeLoadDefaults();
+        listener.beforeLoadDefaults(this);
         Path root = configManager.getDirectory();
         for (String resourcePath : FileUtils.getAllPathsInResourceFolder(configManager, directory)) {
             Path target = root.resolve(resourcePath);
@@ -131,7 +131,7 @@ public class AtumConfigCatalog implements ConfigCatalog {
                 configManager.getLogger().logError("Error loading default for resource: " + resourcePath, e);
             }
         }
-        listener.afterLoadDefaults();
+        listener.afterLoadDefaults(this);
     }
 
     @Override

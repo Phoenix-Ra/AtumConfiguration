@@ -120,11 +120,9 @@ class ConfigCatalogTest {
                 Paths.get("catalog"),
                 sc.nested,
                 new ConfigCatalogListener() {
-                    public void onClear()            { loaded.clear(); defaults.set(false); }
-                    public void onConfigLoaded(@NotNull ConfigFile cf) {
-                        loaded.add(cf.getId());
-                    }
-                    public void afterLoadDefaults()     { defaults.set(true); }
+                    public void onClear(@NotNull ConfigCatalog catalog)            { loaded.clear(); defaults.set(false); }
+                    public void onConfigLoaded(@NotNull ConfigCatalog catalog, @NotNull ConfigFile cf) {loaded.add(cf.getId()); }
+                    public void afterLoadDefaults(@NotNull ConfigCatalog catalog)     { defaults.set(true); }
                 }
         );
 
@@ -242,9 +240,9 @@ class ConfigCatalogTest {
         ConfigCatalog c = configManager.createCatalog(
                 TestHelper.CONFIG_TYPE, "cat", Paths.get("catalog"), false,
                 new ConfigCatalogListener() {
-                    public void onClear()            { events.add("clear"); }
-                    public void onConfigLoaded(@NotNull ConfigFile cf) { events.add("load:" + cf.getId()); }
-                    public void afterLoadDefaults()     { events.add("defaults"); }
+                    public void onClear(@NotNull ConfigCatalog catalog)            { events.add("clear"); }
+                    public void onConfigLoaded(@NotNull ConfigCatalog catalog,@NotNull ConfigFile cf) { events.add("load:" + cf.getId()); }
+                    public void afterLoadDefaults(@NotNull ConfigCatalog catalog)     { events.add("defaults"); }
                 }
         );
 
@@ -393,11 +391,11 @@ class ConfigCatalogTest {
         SimpleListener(List<String> out, AtomicBoolean flag) {
             this.out = out; this.flag = flag;
         }
-        @Override public void onClear() { if (out != null) out.clear(); }
-        @Override public void onConfigLoaded(@NotNull ConfigFile cf) {
+        @Override public void onClear(@NotNull ConfigCatalog catalog) { if (out != null) out.clear(); }
+        @Override public void onConfigLoaded(@NotNull ConfigCatalog catalog,@NotNull ConfigFile cf) {
             if (flag != null) flag.set(true);
             if (out  != null) out.add(cf.getId());
         }
-        @Override public void afterLoadDefaults() { /* no-op */ }
+        @Override public void afterLoadDefaults(@NotNull ConfigCatalog catalog) { /* no-op */ }
     }
 }

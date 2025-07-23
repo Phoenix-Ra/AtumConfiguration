@@ -38,6 +38,7 @@ public class FileUtils {
         ClassLoader cl = configManager.getClass().getClassLoader();
         URL url = cl.getResource(basePath);
         if (url == null) {
+            //@TODO should be debug
             configManager.getLogger().logWarn(
                     "Resource folder not found on classpath: " + basePath
             );

@@ -132,6 +132,16 @@ public class AtumConfigCatalog implements ConfigCatalog {
             }
         }
         listener.afterLoadDefaults(this);
+
+        Path baseDir = configManager
+                .getDirectory().resolve(directory);
+        if (Files.notExists(baseDir)) {
+            try {
+                Files.createDirectory(baseDir);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Override

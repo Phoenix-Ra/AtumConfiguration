@@ -85,8 +85,8 @@ public class AtumConfig implements Config {
 
     @Override
     public void set(@NotNull String path, @Nullable Object obj) {
-        if((obj instanceof Config config) && !(config instanceof AtumConfigSection)){
-            obj = new AtumConfigSection(config);
+        if((obj instanceof Config) && !(obj instanceof AtumConfigSection)){
+            obj = new AtumConfigSection((Config)obj);
         }
         String nearestPath = path.split("\\.")[0];
         if(path.contains(".")){

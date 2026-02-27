@@ -47,7 +47,17 @@ public interface ConfigCatalog {
      * @return a non-null {@link Path}
      */
     @NotNull
-    Path getDirectory();
+    Path getRelativeDirectory();
+
+    /**
+     * Returns the directory containing this catalog's files.
+     *
+     * @return a non-null {@link Path}
+     */
+    @NotNull
+    default Path getDirectory(){
+        return getConfigManager().getDirectory().resolve(getRelativeDirectory());
+    }
 
     /**
      * Indicates whether nested subdirectories are supported in this catalog.

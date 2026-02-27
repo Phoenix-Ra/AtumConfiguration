@@ -26,7 +26,7 @@ public class AtumConfigCatalog implements ConfigCatalog {
     private final ConfigManager configManager;
     private final ConfigType type;
     private final String id;
-    private final Path directory;
+    private final Path relativeDirectory;
     private final ConfigCatalogListener listener;
     private final boolean nestedDirectories;
 
@@ -42,7 +42,7 @@ public class AtumConfigCatalog implements ConfigCatalog {
         this.configManager = configManager;
         this.type = type;
         this.id = id;
-        this.directory = relativeDirectory;
+        this.relativeDirectory = relativeDirectory;
         this.listener = catalogListener;
         this.nestedDirectories = nested;
     }
@@ -55,7 +55,7 @@ public class AtumConfigCatalog implements ConfigCatalog {
         listener.onClear(this);
         configFilesMap.clear();
 
-        Path baseDir = configManager.getDirectory().resolve(directory);
+        Path baseDir = configManager.getDirectory().resolve(relativeDirectory);
         configManager.getLogger().logInfo("Reloading catalog '" + id + "' from " + baseDir);
 
         // Ensure defaults present
@@ -78,7 +78,7 @@ public class AtumConfigCatalog implements ConfigCatalog {
                         String configId = idPath.toString().replace(File.separatorChar, '/');
 
                         // Path to the file including extension
-                        Path relativeFile = directory.resolve(relParent).resolve(path.getFileName());
+                        Path relativeFile = relativeDirectory.resolve(relParent).resolve(path.getFileName());
 
                         try {
                             ConfigFile conf = new AtumConfigFile(
@@ -107,7 +107,7 @@ public class AtumConfigCatalog implements ConfigCatalog {
     private void loadDefaults() {
         listener.beforeLoadDefaults(this);
         Path root = configManager.getDirectory();
-        for (String resourcePath : FileUtils.getAllPathsInResourceFolder(configManager, directory)) {
+        for (String resourcePath : FileUtils.getAllPathsInResourceFolder(configManager, relativeDirectory)) {
             Path target = root.resolve(resourcePath);
             try {
                 if (!resourcePath.contains(".")) {
@@ -134,7 +134,7 @@ public class AtumConfigCatalog implements ConfigCatalog {
         listener.afterLoadDefaults(this);
 
         Path baseDir = configManager
-                .getDirectory().resolve(directory);
+                .getDirectory().resolve(relativeDirectory);
         if (Files.notExists(baseDir)) {
             try {
                 Files.createDirectory(baseDir);

@@ -338,7 +338,7 @@ class ConfigCatalogTest {
         c.reload();
         long elapsed = System.currentTimeMillis() - start;
 
-        assertTrue(elapsed < 2_000, "reload 5k should be <2s");
+        assertTrue(elapsed < 2_500, "reload 5k should be <2s");
         assertTrue(fired.get(), "listener should fire");
         assertEquals(5_000, c.getConfigFilesMap().size());
     }

@@ -137,7 +137,7 @@ public class AtumConfigCatalog implements ConfigCatalog {
                 .getDirectory().resolve(relativeDirectory);
         if (Files.notExists(baseDir)) {
             try {
-                Files.createDirectory(baseDir);
+                Files.createDirectories(baseDir);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
